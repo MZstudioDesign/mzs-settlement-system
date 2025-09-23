@@ -26,7 +26,6 @@ import {
   Users,
   Star,
   PhoneCall,
-  Chat,
   BookOpen,
   WifiOff,
   Wifi,
@@ -69,7 +68,7 @@ interface MZSQuickLoggerFABProps {
 // Map action types to icons
 const actionIcons = {
   INCOMING: PhoneCall,
-  CHAT: Chat,
+  CHAT: MessageSquare,
   GUIDE: BookOpen,
   BELOW3: Star,
   GTE3: Star,

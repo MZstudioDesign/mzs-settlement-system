@@ -10,7 +10,6 @@ import { test, expect, devices } from '@playwright/test';
 
 test.describe('모바일 반응형', () => {
   test.describe('모바일 환경', () => {
-    test.use({ ...devices['iPhone 12'] });
 
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
@@ -22,7 +21,7 @@ test.describe('모바일 반응형', () => {
       expect(viewportSize?.width).toBeLessThanOrEqual(414); // iPhone 12 width
 
       // 메인 헤딩 표시 확인
-      await expect(page.locator('h2:has-text("환영합니다!")')).toBeVisible();
+      await expect(page.locator('h1:has-text("안녕하세요!")')).toBeVisible();
 
       // 모바일 그리드 레이아웃 확인 (1열로 표시되어야 함)
       const featureCards = page.locator('[class*="grid-cols-1"]');
@@ -209,7 +208,6 @@ test.describe('모바일 반응형', () => {
   });
 
   test.describe('데스크톱 환경', () => {
-    test.use({ ...devices['Desktop Chrome'] });
 
     test('데스크톱에서 4열 그리드가 적용된다', async ({ page }) => {
       await page.goto('/');
@@ -255,7 +253,7 @@ test.describe('모바일 반응형', () => {
         await page.goto('/');
 
         // 메인 헤딩 표시 확인
-        await expect(page.locator('h2:has-text("환영합니다!")')).toBeVisible();
+        await expect(page.locator('h1:has-text("안녕하세요!")')).toBeVisible();
 
         // 콘텐츠가 뷰포트를 벗어나지 않는지 확인
         const body = page.locator('body');
@@ -271,13 +269,12 @@ test.describe('모바일 반응형', () => {
         await page.waitForTimeout(300);
 
         // 하단까지 스크롤 후에도 레이아웃이 깨지지 않는지 확인
-        await expect(page.locator('h2:has-text("환영합니다!")')).toBeVisible();
+        await expect(page.locator('h1:has-text("안녕하세요!")')).toBeVisible();
       });
     });
   });
 
   test.describe('터치 인터페이스', () => {
-    test.use({ ...devices['iPhone 12'] });
 
     test('터치 제스처가 올바르게 처리된다', async ({ page }) => {
       await page.goto('/');

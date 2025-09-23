@@ -33,6 +33,9 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_u
 
 export { supabase }
 
+// createClient를 다시 export하여 다른 파일에서 사용할 수 있도록 함
+export { createClient } from '@supabase/supabase-js'
+
 // 타입 안전한 테이블 접근자
 export const tables = {
   members: () => supabase.from('members'),

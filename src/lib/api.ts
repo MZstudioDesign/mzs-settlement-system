@@ -5,6 +5,7 @@
 
 import { tables, views, functions } from './supabase'
 import { mockApi, mockSupportingData } from './mock-data'
+import { settlementsApi } from './api/settlements'
 import type {
   Project,
   ProjectWithRelations,
@@ -23,6 +24,12 @@ import type {
   FeedLog,
   FeedLogWithMember,
   CreateFeedLogForm,
+  Settlement,
+  SettlementWithItems,
+  CreateSettlementForm,
+  UpdateSettlementForm,
+  SettlementItem,
+  CreateSettlementItemForm,
 } from '@/types/database'
 
 // Check if Supabase is configured
@@ -34,9 +41,29 @@ const isSupabaseConfigured = () => {
 
 // Error handling utility
 function handleSupabaseError<T>(error: any): ApiResponse<T> {
+  // Better error handling for different error types
+  let errorMessage = 'Database operation failed'
+
+  if (error) {
+    if (typeof error === 'string') {
+      errorMessage = error
+    } else if (error.message) {
+      errorMessage = error.message
+    } else if (error.error_description) {
+      errorMessage = error.error_description
+    } else if (error.details) {
+      errorMessage = error.details
+    } else {
+      // If error is an object but no recognizable message field
+      errorMessage = `Database error: ${JSON.stringify(error)}`
+    }
+  }
+
   console.error('Supabase error:', error)
+  console.error('Processed error message:', errorMessage)
+
   return {
-    error: error.message || 'Database operation failed',
+    error: errorMessage,
   }
 }
 

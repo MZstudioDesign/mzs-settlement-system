@@ -17,37 +17,36 @@ test.describe('홈페이지', () => {
     // 페이지 제목 확인
     await expect(page).toHaveTitle(/MZS/);
 
-    // 메인 헤딩 확인
-    await expect(page.locator('h2')).toContainText('환영합니다!');
+    // 메인 헤딩 확인 - 실제 페이지의 h1 텍스트
+    await expect(page.locator('h1')).toContainText('안녕하세요!');
 
-    // 시스템 소개 텍스트 확인
-    await expect(page.locator('text=MZS 스튜디오 정산 시스템이 성공적으로 설정되었습니다')).toBeVisible();
+    // 서브타이틀 텍스트 확인
+    await expect(page.locator('text=오늘도 좋은 하루 되세요')).toBeVisible();
 
-    // 모바일 우선 설계 언급 확인
-    await expect(page.locator('text=모바일 우선 설계로 언제 어디서나')).toBeVisible();
+    // 대시보드 제목 확인
+    await expect(page.locator('text=대시보드')).toBeVisible();
   });
 
-  test('기능 카드들이 올바르게 표시된다', async ({ page }) => {
-    // 자동 정산 카드
-    await expect(page.locator('text=자동 정산')).toBeVisible();
-    await expect(page.locator('text=부가세, 원천징수 3.3% 자동 계산')).toBeVisible();
+  test('KPI 카드들이 올바르게 표시된다', async ({ page }) => {
+    // 이달 매출 카드
+    await expect(page.locator('text=이달 매출')).toBeVisible();
 
-    // 팀원 관리 카드
-    await expect(page.locator('text=팀원 관리')).toBeVisible();
-    await expect(page.locator('text=6명 디자이너 정산 관리')).toBeVisible();
+    // 진행 프로젝트 카드
+    await expect(page.locator('text=진행 프로젝트')).toBeVisible();
 
-    // 모바일 FAB 카드
-    await expect(page.locator('text=모바일 FAB')).toBeVisible();
-    await expect(page.locator('text=원탭으로 빠른 입력')).toBeVisible();
+    // 정산 완료 카드
+    await expect(page.locator('text=정산 완료')).toBeVisible();
 
-    // 실시간 대시보드 카드
-    await expect(page.locator('text=실시간 대시보드')).toBeVisible();
-    await expect(page.locator('text=KPI 및 성과 분석')).toBeVisible();
+    // 미지급 금액 카드
+    await expect(page.locator('text=미지급 금액')).toBeVisible();
+
+    // 월간 목표 섹션
+    await expect(page.locator('text=이달 목표')).toBeVisible();
   });
 
   test('빠른 시작 버튼들이 작동한다', async ({ page }) => {
-    // 새 프로젝트 정산 버튼
-    const newProjectButton = page.locator('text=새 프로젝트 정산');
+    // 새 프로젝트 버튼
+    const newProjectButton = page.locator('text=새 프로젝트').first();
     await expect(newProjectButton).toBeVisible();
 
     // 버튼 클릭 시 올바른 페이지로 이동하는지 확인
@@ -57,21 +56,21 @@ test.describe('홈페이지', () => {
     // 다시 홈으로 돌아가기
     await page.goto('/');
 
-    // 프로젝트 관리 버튼
-    const projectManageButton = page.locator('text=프로젝트 관리').first();
-    await expect(projectManageButton).toBeVisible();
+    // 정산 생성 버튼
+    const settlementButton = page.locator('text=정산 생성').first();
+    await expect(settlementButton).toBeVisible();
 
-    await projectManageButton.click();
-    await expect(page).toHaveURL(/\/projects/);
+    await settlementButton.click();
+    await expect(page).toHaveURL(/\/settlements/);
   });
 
-  test('시스템 상태가 정상으로 표시된다', async ({ page }) => {
-    // 시스템 상태 인디케이터
-    await expect(page.locator('.bg-green-500')).toBeVisible();
-    await expect(page.locator('text=시스템 정상 운영 중')).toBeVisible();
+  test('성과 랭킹이 올바르게 표시된다', async ({ page }) => {
+    // 성과 랭킹 섹션
+    await expect(page.locator('text=이달 성과 랭킹')).toBeVisible();
+    await expect(page.locator('text=2.5배 환산 기준')).toBeVisible();
 
-    // 기술 스택 정보
-    await expect(page.locator('text=Next.js 15 + Supabase + shadcn/ui로 구축됨')).toBeVisible();
+    // 최근 활동 섹션
+    await expect(page.locator('text=최근 활동')).toBeVisible();
   });
 
   test('아이콘들이 올바르게 표시된다', async ({ page }) => {
@@ -117,21 +116,21 @@ test.describe('홈페이지', () => {
   });
 
   test('반응형 그리드가 올바르게 작동한다', async ({ page }) => {
-    // 기능 카드 그리드 확인
-    const featureGrid = page.locator('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4');
-    await expect(featureGrid).toBeVisible();
+    // KPI 카드 그리드 확인
+    const kpiGrid = page.locator('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4');
+    await expect(kpiGrid).toBeVisible();
 
-    // 빠른 시작 버튼 그리드 확인
-    const quickActionGrid = page.locator('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+    // 빠른 작업 버튼 그리드 확인
+    const quickActionGrid = page.locator('.grid.grid-cols-2.md\\:grid-cols-4');
     await expect(quickActionGrid).toBeVisible();
   });
 
   test('한국어 콘텐츠가 올바르게 표시된다', async ({ page }) => {
     // 주요 한국어 텍스트들 확인
-    await expect(page.locator('text=환영합니다!')).toBeVisible();
-    await expect(page.locator('text=정산 시스템')).toBeVisible();
-    await expect(page.locator('text=디자이너')).toBeVisible();
-    await expect(page.locator('text=자동 계산')).toBeVisible();
-    await expect(page.locator('text=빠른 시작')).toBeVisible();
+    await expect(page.locator('text=안녕하세요!')).toBeVisible();
+    await expect(page.locator('text=이달 매출')).toBeVisible();
+    await expect(page.locator('text=정산 완료')).toBeVisible();
+    await expect(page.locator('text=빠른 작업')).toBeVisible();
+    await expect(page.locator('text=성과 랭킹')).toBeVisible();
   });
 });

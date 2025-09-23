@@ -25,10 +25,8 @@ import {
   Download,
   Edit,
   Trash2,
-  Upload,
   FileText,
   Image,
-  X,
   Eye,
   Building,
   User,
@@ -48,6 +46,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { FileUpload } from '@/components/ui/file-upload';
 
 // Mock data
 const mockMembers = [
@@ -134,40 +133,18 @@ export default function FundsPage() {
   });
 
   // 파일 업로드 핸들러
-  const handleFileUpload = (files, isCompany) => {
-    const fileArray = Array.from(files);
-    const validFiles = fileArray.filter(file => {
-      const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      return validTypes.includes(file.type) && file.size <= maxSize;
-    });
-
-    if (isCompany) {
-      setNewCompanyFund(prev => ({
-        ...prev,
-        attachments: [...prev.attachments, ...validFiles.slice(0, 5 - prev.attachments.length)]
-      }));
-    } else {
-      setNewPersonalFund(prev => ({
-        ...prev,
-        attachments: [...prev.attachments, ...validFiles.slice(0, 5 - prev.attachments.length)]
-      }));
-    }
+  const handleCompanyFilesChange = (files: File[]) => {
+    setNewCompanyFund(prev => ({
+      ...prev,
+      attachments: files
+    }));
   };
 
-  // 파일 제거 핸들러
-  const removeFile = (index, isCompany) => {
-    if (isCompany) {
-      setNewCompanyFund(prev => ({
-        ...prev,
-        attachments: prev.attachments.filter((_, i) => i !== index)
-      }));
-    } else {
-      setNewPersonalFund(prev => ({
-        ...prev,
-        attachments: prev.attachments.filter((_, i) => i !== index)
-      }));
-    }
+  const handlePersonalFilesChange = (files: File[]) => {
+    setNewPersonalFund(prev => ({
+      ...prev,
+      attachments: files
+    }));
   };
 
   // 필터링된 자금 데이터
@@ -396,46 +373,14 @@ export default function FundsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>증빙 파일 (PDF, JPG, PNG, 최대 5개, 각 10MB)</Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                        <input
-                          type="file"
-                          multiple
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => handleFileUpload(e.target.files, true)}
-                          className="hidden"
-                          id="company-file-upload"
-                        />
-                        <label
-                          htmlFor="company-file-upload"
-                          className="flex flex-col items-center justify-center cursor-pointer"
-                        >
-                          <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-600">파일을 선택하거나 드래그하세요</span>
-                        </label>
-                      </div>
-                      {newCompanyFund.attachments.length > 0 && (
-                        <div className="space-y-2">
-                          {newCompanyFund.attachments.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <div className="flex items-center gap-2">
-                                {getFileIcon(file.name)}
-                                <span className="text-sm">{file.name}</span>
-                                <span className="text-xs text-gray-500">
-                                  ({Math.round(file.size / 1024)} KB)
-                                </span>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => removeFile(index, true)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <Label>증빙 파일</Label>
+                      <FileUpload
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        multiple={true}
+                        maxFiles={5}
+                        maxSize={10}
+                        onFilesChange={handleCompanyFilesChange}
+                      />
                     </div>
                   </div>
                   <DialogFooter>
@@ -616,46 +561,14 @@ export default function FundsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>증빙 파일 (PDF, JPG, PNG, 최대 5개, 각 10MB)</Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                        <input
-                          type="file"
-                          multiple
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => handleFileUpload(e.target.files, false)}
-                          className="hidden"
-                          id="personal-file-upload"
-                        />
-                        <label
-                          htmlFor="personal-file-upload"
-                          className="flex flex-col items-center justify-center cursor-pointer"
-                        >
-                          <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-600">파일을 선택하거나 드래그하세요</span>
-                        </label>
-                      </div>
-                      {newPersonalFund.attachments.length > 0 && (
-                        <div className="space-y-2">
-                          {newPersonalFund.attachments.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <div className="flex items-center gap-2">
-                                {getFileIcon(file.name)}
-                                <span className="text-sm">{file.name}</span>
-                                <span className="text-xs text-gray-500">
-                                  ({Math.round(file.size / 1024)} KB)
-                                </span>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => removeFile(index, false)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <Label>증빙 파일</Label>
+                      <FileUpload
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        multiple={true}
+                        maxFiles={5}
+                        maxSize={10}
+                        onFilesChange={handlePersonalFilesChange}
+                      />
                     </div>
                   </div>
                   <DialogFooter>

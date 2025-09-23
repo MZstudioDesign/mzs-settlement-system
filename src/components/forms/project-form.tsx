@@ -51,11 +51,25 @@ const projectFormSchema = z.object({
     bonus_pct: z.number().min(0).max(20, '보너스는 0-20% 사이여야 합니다')
   })).min(1, '최소 1명의 디자이너를 배정해주세요')
 }).refine((data) => {
-  // 디자이너 비율 합계가 100%인지 확인
+  // 디자이너 비율 합계가 정확히 100%인지 강제 검증
   const totalPercent = data.designers.reduce((sum, designer) => sum + designer.percent, 0)
-  return Math.abs(totalPercent - 100) < 0.01 // 부동소수점 오차 고려
+  return totalPercent === 100 // 지침서 요구사항: 정확히 100%
 }, {
-  message: '디자이너 비율의 합계는 100%여야 합니다',
+  message: '디자이너 비율의 합계는 반드시 100%가 되어야 합니다',
+  path: ['designers']
+}).refine((data) => {
+  // 각 디자이너의 인센티브가 0-20% 범위인지 검증
+  return data.designers.every(designer => designer.bonus_pct >= 0 && designer.bonus_pct <= 20)
+}, {
+  message: '인센티브는 0-20% 사이의 값이어야 합니다',
+  path: ['designers']
+}).refine((data) => {
+  // 중복 멤버 배정 방지
+  const memberIds = data.designers.map(d => d.member_id).filter(id => id)
+  const uniqueIds = new Set(memberIds)
+  return memberIds.length === uniqueIds.size
+}, {
+  message: '동일한 멤버를 중복으로 배정할 수 없습니다',
   path: ['designers']
 })
 
@@ -164,9 +178,11 @@ export function ProjectForm({
   const discountNet = watchedValues.discount_net || 0
   const designers = watchedValues.designers || []
 
-  // 총 비율 계산
+  // 총 비율 계산 - 지침서 요구사항: 정확히 100%
   const totalPercent = designers.reduce((sum, designer) => sum + (designer.percent || 0), 0)
-  const isPercentValid = Math.abs(totalPercent - 100) < 0.01
+  const isPercentValid = totalPercent === 100
+  const isPercentOver = totalPercent > 100
+  const isPercentUnder = totalPercent < 100
 
   // 지원 데이터가 없으면 로딩 표시
   if (!supportingData) {
@@ -518,19 +534,33 @@ export function ProjectForm({
             ))}
           </div>
 
-          {/* 총 비율 표시 */}
+          {/* 총 비율 표시 - 강화된 검증 */}
           <div className="flex items-center justify-between p-3 bg-muted rounded-md">
             <span className="font-medium">총 배분 비율:</span>
             <div className="flex items-center gap-2">
               <Badge
                 variant={isPercentValid ? "default" : "destructive"}
-                className="font-mono"
+                className={`font-mono ${
+                  isPercentOver ? "bg-red-100 text-red-800" :
+                  isPercentUnder ? "bg-yellow-100 text-yellow-800" :
+                  "bg-green-100 text-green-800"
+                }`}
               >
                 {totalPercent.toFixed(1)}%
               </Badge>
-              {!isPercentValid && (
-                <span className="text-sm text-destructive">
-                  100%가 되어야 합니다
+              {isPercentOver && (
+                <span className="text-sm text-destructive font-medium">
+                  ⚠️ 100%를 초과했습니다 ({(totalPercent - 100).toFixed(1)}% 초과)
+                </span>
+              )}
+              {isPercentUnder && (
+                <span className="text-sm text-yellow-600 font-medium">
+                  ⚠️ 100%가 부족합니다 ({(100 - totalPercent).toFixed(1)}% 부족)
+                </span>
+              )}
+              {isPercentValid && (
+                <span className="text-sm text-green-600 font-medium">
+                  ✅ 정확히 100%입니다
                 </span>
               )}
             </div>

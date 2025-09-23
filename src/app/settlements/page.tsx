@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LazyOptimizedSettlementsTable, LazyOptimizedSettlementItemsTable } from '@/components/common/lazy-components';
+import { useSettlements, useSettlementItems, useSettlementStats, useCreateSettlement } from '@/hooks/use-settlements';
 
 // Mock data
 const mockSettlements = [
@@ -152,12 +154,16 @@ const statusColors = {
 
 export default function SettlementsPage() {
   const [activeTab, setActiveTab] = useState('settlements');
-  const [settlements, setSettlements] = useState(mockSettlements);
-  const [settlementItems, setSettlementItems] = useState(mockSettlementItems);
   const [selectedSettlement, setSelectedSettlement] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  // React Query hooks
+  const { data: settlements = [], isLoading: settlementsLoading } = useSettlements();
+  const { data: settlementItems = [], isLoading: itemsLoading } = useSettlementItems(selectedSettlement?.id);
+  const { data: stats } = useSettlementStats();
+  const createSettlementMutation = useCreateSettlement();
 
   // 새 정산 생성 폼 상태
   const [newSettlement, setNewSettlement] = useState({
@@ -165,8 +171,10 @@ export default function SettlementsPage() {
     note: ''
   });
 
-  // 필터링된 정산 데이터
+  // 필터링된 정산 데이터 - 메모화된 필터링
   const filteredSettlements = useMemo(() => {
+    if (!settlements.length) return [];
+
     return settlements.filter(settlement => {
       const matchesSearch = searchTerm === '' ||
         settlement.ym.includes(searchTerm) ||
@@ -178,35 +186,18 @@ export default function SettlementsPage() {
     });
   }, [settlements, searchTerm, statusFilter]);
 
-  // 통계 계산
-  const settlementStats = useMemo(() => {
-    const totalSettlements = settlements.length;
-    const completedSettlements = settlements.filter(s => s.status === 'COMPLETED').length;
-    const pendingSettlements = settlements.filter(s => s.status === 'PENDING').length;
-    const totalAmount = settlements.reduce((sum, s) => sum + s.settledAmount, 0);
-
-    return {
-      totalSettlements,
-      completedSettlements,
-      pendingSettlements,
-      totalAmount,
-      completionRate: totalSettlements > 0 ? (completedSettlements / totalSettlements * 100).toFixed(1) : 0
-    };
-  }, [settlements]);
-
-  // 정산 항목 통계
+  // 정산 항목 통계 - 실제 데이터 기반
   const itemStats = useMemo(() => {
-    if (!selectedSettlement) return null;
+    if (!selectedSettlement || !settlementItems.length) return null;
 
-    const items = settlementItems.filter(item => true); // 실제로는 selectedSettlement.id로 필터링
-    const totalBeforeWithholding = items.reduce((sum, item) => sum + item.totalBeforeWithholding, 0);
-    const totalAfterWithholding = items.reduce((sum, item) => sum + item.totalAfterWithholding, 0);
-    const totalWithholding = items.reduce((sum, item) => sum + item.withholdingAmount, 0);
-    const paidCount = items.filter(item => item.paid).length;
-    const unpaidCount = items.filter(item => !item.paid).length;
+    const totalBeforeWithholding = settlementItems.reduce((sum, item) => sum + item.amount_before_withholding, 0);
+    const totalAfterWithholding = settlementItems.reduce((sum, item) => sum + item.amount_after_withholding, 0);
+    const totalWithholding = settlementItems.reduce((sum, item) => sum + item.withholding_3_3, 0);
+    const paidCount = settlementItems.filter(item => item.paid).length;
+    const unpaidCount = settlementItems.filter(item => !item.paid).length;
 
     return {
-      totalItems: items.length,
+      totalItems: settlementItems.length,
       paidCount,
       unpaidCount,
       totalBeforeWithholding,
@@ -215,41 +206,29 @@ export default function SettlementsPage() {
     };
   }, [selectedSettlement, settlementItems]);
 
-  const handleCreateSettlement = () => {
+  // 메모화된 핸들러들
+  const handleCreateSettlement = useCallback(() => {
     if (!newSettlement.ym) return;
 
-    const settlement = {
-      id: Date.now().toString(),
+    createSettlementMutation.mutate({
       ym: newSettlement.ym,
-      note: newSettlement.note || `${newSettlement.ym} 정산`,
-      createdAt: new Date().toISOString().split('T')[0],
-      status: 'DRAFT',
-      totalAmount: 0, // 실제로는 계산된 값
-      settledAmount: 0, // 실제로는 계산된 값
-      memberCount: 6,
-      itemCount: 0
-    };
+      note: newSettlement.note
+    }, {
+      onSuccess: () => {
+        setNewSettlement({ ym: '', note: '' });
+        setIsCreateDialogOpen(false);
+      }
+    });
+  }, [newSettlement, createSettlementMutation]);
 
-    setSettlements([settlement, ...settlements]);
-    setNewSettlement({ ym: '', note: '' });
-    setIsCreateDialogOpen(false);
-  };
+  const handleRowClick = useCallback((settlement) => {
+    setSelectedSettlement(settlement);
+    setActiveTab('details');
+  }, []);
 
-  const handleUpdateSettlementStatus = (settlementId, status) => {
-    setSettlements(settlements.map(s =>
-      s.id === settlementId ? { ...s, status } : s
-    ));
-  };
-
-  const handleTogglePaid = (itemId) => {
-    setSettlementItems(settlementItems.map(item =>
-      item.id === itemId ? {
-        ...item,
-        paid: !item.paid,
-        paidDate: !item.paid ? new Date().toISOString().split('T')[0] : null
-      } : item
-    ));
-  };
+  const handleStatusUpdate = useCallback((settlementId, status) => {
+    // OptimizedSettlementsTable에서 mutation 처리
+  }, []);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -350,7 +329,7 @@ export default function SettlementsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{settlementStats.totalSettlements}</div>
+              <div className="text-2xl font-bold">{stats?.totalSettlements || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -360,7 +339,7 @@ export default function SettlementsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{settlementStats.completedSettlements}</div>
+              <div className="text-2xl font-bold text-green-600">{stats?.completedSettlements || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -370,7 +349,7 @@ export default function SettlementsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{settlementStats.pendingSettlements}</div>
+              <div className="text-2xl font-bold text-yellow-600">{stats?.pendingSettlements || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -380,7 +359,7 @@ export default function SettlementsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{settlementStats.completionRate}%</div>
+              <div className="text-2xl font-bold text-blue-600">{stats?.completionRate.toFixed(1) || 0}%</div>
             </CardContent>
           </Card>
           <Card>
@@ -390,7 +369,7 @@ export default function SettlementsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xl font-bold">{formatCurrency(settlementStats.totalAmount)}</div>
+              <div className="text-xl font-bold">{formatCurrency(stats?.totalAmount || 0)}</div>
             </CardContent>
           </Card>
         </div>
@@ -437,113 +416,23 @@ export default function SettlementsPage() {
               </CardContent>
             </Card>
 
-            {/* 정산 목록 테이블 */}
+            {/* 최적화된 정산 목록 테이블 */}
             <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>정산 월</TableHead>
-                      <TableHead>메모</TableHead>
-                      <TableHead>상태</TableHead>
-                      <TableHead>생성일</TableHead>
-                      <TableHead>총 매출</TableHead>
-                      <TableHead>정산 금액</TableHead>
-                      <TableHead>대상 인원</TableHead>
-                      <TableHead>항목 수</TableHead>
-                      <TableHead className="w-12"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredSettlements.map(settlement => (
-                      <TableRow
-                        key={settlement.id}
-                        className="hover:bg-muted/50 cursor-pointer"
-                        onClick={() => setSelectedSettlement(settlement)}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{settlement.ym}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-48 truncate">
-                          {settlement.note}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className={statusColors[settlement.status]}>
-                            {statusLabels[settlement.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {new Date(settlement.createdAt).toLocaleDateString('ko-KR')}
-                        </TableCell>
-                        <TableCell className="font-mono">
-                          {formatCurrency(settlement.totalAmount)}
-                        </TableCell>
-                        <TableCell className="font-mono">
-                          {formatCurrency(settlement.settledAmount)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            {settlement.memberCount}명
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Activity className="h-4 w-4 text-muted-foreground" />
-                            {settlement.itemCount}개
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuLabel>작업</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedSettlement(settlement);
-                                setActiveTab('details');
-                              }}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                상세보기
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="h-4 w-4 mr-2" />
-                                편집
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Download className="h-4 w-4 mr-2" />
-                                PDF 내보내기
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <FileText className="h-4 w-4 mr-2" />
-                                CSV 내보내기
-                              </DropdownMenuItem>
-                              {settlement.status === 'DRAFT' && (
-                                <DropdownMenuItem onClick={() => handleUpdateSettlementStatus(settlement.id, 'PENDING')}>
-                                  <Check className="h-4 w-4 mr-2" />
-                                  승인 대기로 변경
-                                </DropdownMenuItem>
-                              )}
-                              {settlement.status === 'PENDING' && (
-                                <DropdownMenuItem onClick={() => handleUpdateSettlementStatus(settlement.id, 'COMPLETED')}>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  완료 처리
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <CardContent className="p-4">
+                {settlementsLoading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <span className="text-muted-foreground">로딩 중...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <LazyOptimizedSettlementsTable
+                    data={filteredSettlements}
+                    onRowClick={handleRowClick}
+                    onStatusUpdate={handleStatusUpdate}
+                  />
+                )}
               </CardContent>
             </Card>
 
@@ -622,7 +511,7 @@ export default function SettlementsPage() {
                   )}
                 </Card>
 
-                {/* 정산 항목 테이블 */}
+                {/* 최적화된 정산 항목 테이블 */}
                 <Card>
                   <CardHeader>
                     <CardTitle>정산 상세 내역</CardTitle>
@@ -630,103 +519,20 @@ export default function SettlementsPage() {
                       개인별 정산 내역과 지급 상태를 관리하세요
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>팀원</TableHead>
-                          <TableHead>디자인</TableHead>
-                          <TableHead>컨택</TableHead>
-                          <TableHead>피드</TableHead>
-                          <TableHead>팀업무</TableHead>
-                          <TableHead>보너스</TableHead>
-                          <TableHead>원천전</TableHead>
-                          <TableHead>원천징수</TableHead>
-                          <TableHead>실지급</TableHead>
-                          <TableHead>지급상태</TableHead>
-                          <TableHead>메모</TableHead>
-                          <TableHead className="w-12"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {settlementItems.map(item => (
-                          <TableRow key={item.id} className="hover:bg-muted/50">
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold">
-                                  {item.member.code}
-                                </div>
-                                <span className="font-medium">{item.member.name}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {formatCurrency(item.designerAmount)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {formatCurrency(item.contactAmount)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {formatCurrency(item.feedAmount)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {formatCurrency(item.teamAmount)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {formatCurrency(item.bonusAmount)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm font-medium">
-                              {formatCurrency(item.totalBeforeWithholding)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm text-red-600">
-                              -{formatCurrency(item.withholdingAmount)}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm font-bold text-green-600">
-                              {formatCurrency(item.totalAfterWithholding)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={item.paid}
-                                  onCheckedChange={() => handleTogglePaid(item.id)}
-                                />
-                                <Badge variant="secondary" className={item.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                                  {item.paid ? '지급완료' : '지급대기'}
-                                </Badge>
-                              </div>
-                              {item.paid && item.paidDate && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {new Date(item.paidDate).toLocaleDateString('ko-KR')}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell className="max-w-32 truncate text-xs">
-                              {item.memo || '-'}
-                            </TableCell>
-                            <TableCell>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  <DropdownMenuLabel>작업</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    메모 편집
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Calculator className="h-4 w-4 mr-2" />
-                                    재계산
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                  <CardContent className="p-4">
+                    {itemsLoading ? (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                          <span className="text-muted-foreground">로딩 중...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <LazyOptimizedSettlementItemsTable
+                        data={settlementItems}
+                        height={500}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               </>

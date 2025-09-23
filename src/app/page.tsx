@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,9 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
+import { UnpaidSummaryCard } from '@/components/dashboard/unpaid-summary';
+import { getUnpaidSummary, type UnpaidSummary } from '@/lib/unpaid-tracker';
+import { toKRW } from '@/lib/currency';
 
 // Mock data - 실제 구현시 API에서 가져올 데이터
 const mockDashboardData = {
@@ -64,31 +67,45 @@ const mockDashboardData = {
 export default function Dashboard() {
   const [data, setData] = useState(mockDashboardData);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [unpaidSummary, setUnpaidSummary] = useState<UnpaidSummary | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  const calculateGrowth = (current: number, previous: number) => {
-    return ((current - previous) / previous * 100);
-  };
+  // 미지급 현황 로드
+  useEffect(() => {
+    getUnpaidSummary().then(setUnpaidSummary).catch(console.error);
+  }, []);
 
-  const formatCurrency = (amount: number) => {
+  // Memoized calculation functions
+  const calculateGrowth = useCallback((current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous * 100);
+  }, []);
+
+  // Memoized formatters for better performance
+  const formatCurrency = useMemo(() => {
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
       currency: 'KRW',
       minimumFractionDigits: 0
-    }).format(amount);
-  };
+    });
+  }, []);
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('ko-KR').format(num);
-  };
+  const formatNumber = useMemo(() => {
+    return new Intl.NumberFormat('ko-KR');
+  }, []);
 
-  const revenueGrowth = calculateGrowth(data.kpi.thisMonth.revenue, data.kpi.lastMonth.revenue);
-  const projectsGrowth = calculateGrowth(data.kpi.thisMonth.projects, data.kpi.lastMonth.projects);
-  const settlementGrowth = calculateGrowth(data.kpi.thisMonth.settlement, data.kpi.lastMonth.settlement);
+  // Memoized growth calculations
+  const growthMetrics = useMemo(() => {
+    const revenueGrowth = calculateGrowth(data.kpi.thisMonth.revenue, data.kpi.lastMonth.revenue);
+    const projectsGrowth = calculateGrowth(data.kpi.thisMonth.projects, data.kpi.lastMonth.projects);
+    const settlementGrowth = calculateGrowth(data.kpi.thisMonth.settlement, data.kpi.lastMonth.settlement);
+
+    return { revenueGrowth, projectsGrowth, settlementGrowth };
+  }, [data.kpi, calculateGrowth]);
 
   return (
     <MainLayout title="대시보드" subtitle={`${currentTime.toLocaleDateString('ko-KR')} ${currentTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`}>
@@ -134,12 +151,12 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">현재 매출</span>
-                <span className="font-medium">{formatCurrency(data.monthlyGoal.current)}</span>
+                <span className="font-medium">{formatCurrency.format(data.monthlyGoal.current)}</span>
               </div>
               <Progress value={data.monthlyGoal.progress} className="h-3" />
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">목표 매출</span>
-                <span className="font-medium">{formatCurrency(data.monthlyGoal.target)}</span>
+                <span className="font-medium">{formatCurrency.format(data.monthlyGoal.target)}</span>
               </div>
             </CardContent>
           </Card>
@@ -153,15 +170,15 @@ export default function Dashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.kpi.thisMonth.revenue)}</div>
+              <div className="text-2xl font-bold">{formatCurrency.format(data.kpi.thisMonth.revenue)}</div>
               <div className="flex items-center text-xs text-muted-foreground">
-                {revenueGrowth >= 0 ? (
+                {growthMetrics.revenueGrowth >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
                 )}
-                <span className={revenueGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                  {Math.abs(revenueGrowth).toFixed(1)}%
+                <span className={growthMetrics.revenueGrowth >= 0 ? "text-green-500" : "text-red-500"}>
+                  {Math.abs(growthMetrics.revenueGrowth).toFixed(1)}%
                 </span>
                 <span className="ml-1">vs 지난달</span>
               </div>
@@ -174,15 +191,15 @@ export default function Dashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(data.kpi.thisMonth.projects)}</div>
+              <div className="text-2xl font-bold">{formatNumber.format(data.kpi.thisMonth.projects)}</div>
               <div className="flex items-center text-xs text-muted-foreground">
-                {projectsGrowth >= 0 ? (
+                {growthMetrics.projectsGrowth >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
                 )}
-                <span className={projectsGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                  {Math.abs(projectsGrowth).toFixed(1)}%
+                <span className={growthMetrics.projectsGrowth >= 0 ? "text-green-500" : "text-red-500"}>
+                  {Math.abs(growthMetrics.projectsGrowth).toFixed(1)}%
                 </span>
                 <span className="ml-1">vs 지난달</span>
               </div>
@@ -195,15 +212,15 @@ export default function Dashboard() {
               <Calculator className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.kpi.thisMonth.settlement)}</div>
+              <div className="text-2xl font-bold">{formatCurrency.format(data.kpi.thisMonth.settlement)}</div>
               <div className="flex items-center text-xs text-muted-foreground">
-                {settlementGrowth >= 0 ? (
+                {growthMetrics.settlementGrowth >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
                 ) : (
                   <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
                 )}
-                <span className={settlementGrowth >= 0 ? "text-green-500" : "text-red-500"}>
-                  {Math.abs(settlementGrowth).toFixed(1)}%
+                <span className={growthMetrics.settlementGrowth >= 0 ? "text-green-500" : "text-red-500"}>
+                  {Math.abs(growthMetrics.settlementGrowth).toFixed(1)}%
                 </span>
                 <span className="ml-1">vs 지난달</span>
               </div>
@@ -213,14 +230,38 @@ export default function Dashboard() {
           <Card className="hover:shadow-lg transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">미지급 금액</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Clock className={`h-4 w-4 ${
+                unpaidSummary && unpaidSummary.totalUnpaidAmount > 0
+                  ? 'text-orange-500'
+                  : 'text-green-500'
+              }`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(data.kpi.thisMonth.pending)}</div>
-              <div className="text-xs text-muted-foreground">지급 대기 중</div>
+              <div className={`text-2xl font-bold ${
+                unpaidSummary && unpaidSummary.totalUnpaidAmount > 0
+                  ? 'text-orange-600'
+                  : 'text-green-600'
+              }`}>
+                {unpaidSummary ? toKRW(unpaidSummary.totalUnpaidAmount) : toKRW(data.kpi.thisMonth.pending)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {unpaidSummary && unpaidSummary.totalUnpaidCount > 0
+                  ? `${unpaidSummary.totalUnpaidCount}건 지급 대기`
+                  : '지급 완료'
+                }
+              </div>
             </CardContent>
           </Card>
         </section>
+
+        {/* 미지급 현황 */}
+        {unpaidSummary && unpaidSummary.totalUnpaidAmount > 0 && (
+          <section>
+            <UnpaidSummaryCard
+              onViewDetails={() => window.open('/settlements', '_blank')}
+            />
+          </section>
+        )}
 
         {/* 성과 랭킹과 최근 활동 */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -252,7 +293,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono text-sm">{formatCurrency(member.revenue)}</p>
+                    <p className="font-mono text-sm">{formatCurrency.format(member.revenue)}</p>
                     <div className="flex items-center text-xs">
                       {member.growth >= 0 ? (
                         <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
@@ -299,7 +340,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono text-sm">{formatCurrency(activity.amount)}</p>
+                    <p className="font-mono text-sm">{formatCurrency.format(activity.amount)}</p>
                   </div>
                 </div>
               ))}

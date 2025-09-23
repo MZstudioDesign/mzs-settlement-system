@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/lib/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
+import PerformanceMonitor from "@/components/dev/performance-monitor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
         <QueryProvider>
           {children}
           <Toaster richColors position="top-center" />
+          <PerformanceMonitor />
         </QueryProvider>
       </body>
     </html>

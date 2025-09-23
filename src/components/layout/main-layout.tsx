@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import { MobileHeader } from "@/components/navigation/mobile-header";
 import { BottomNavigation } from "@/components/navigation/bottom-navigation";
 import { Breadcrumb, BreadcrumbItem } from "@/components/navigation/breadcrumb";
-import { MZSQuickLoggerFAB } from "@/components/fab/quick-logger-fab";
+// import { QuickLoggerFAB } from "@/components/fab/quick-logger-fab";
 import { QuickInputOverlay } from "@/components/overlays/quick-input-overlay";
 import { ContactFeedModal } from "@/components/modals/contact-feed-modal";
 import { cn, mobile, a11y } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
+import { LazyPerformanceMonitor } from "@/components/common/lazy-components";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -96,27 +97,35 @@ export function MainLayout({
 
   // FAB handlers removed - now handled by MZSQuickLoggerFAB internally
 
-  // 빠른 입력 저장 핸들러
-  const handleQuickInputSave = (data: any) => {
+  // Memoized event handlers for better performance
+  const handleQuickInputSave = useCallback((data: any) => {
     console.log('Quick input saved:', data);
     // 실제 구현에서는 API 호출 또는 상태 업데이트
 
     // 성공 피드백
     mobile.hapticFeedback.medium();
+    setQuickInputType(null);
+  }, []);
 
-    // Count updates now handled by MZSQuickLoggerFAB
-  };
-
-  // 상세 입력 모달 저장 핸들러
-  const handleContactSave = (data: any) => {
+  const handleContactSave = useCallback((data: any) => {
     console.log('Contact saved:', data);
     mobile.hapticFeedback.medium();
-  };
+    setIsContactFeedModalOpen(false);
+  }, []);
 
-  const handleFeedSave = (data: any) => {
+  const handleFeedSave = useCallback((data: any) => {
     console.log('Feed saved:', data);
     mobile.hapticFeedback.medium();
-  };
+    setIsContactFeedModalOpen(false);
+  }, []);
+
+  const handleQuickInputClose = useCallback(() => {
+    setQuickInputType(null);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setIsContactFeedModalOpen(false);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,14 +170,9 @@ export function MainLayout({
       {/* Bottom Navigation */}
       {showBottomNav && <BottomNavigation />}
 
-      {/* MZS Quick Logger FAB */}
-      {showFAB && (
-        <MZSQuickLoggerFAB
-          show={true}
-          position="bottom-right"
-          size="md"
-          hideOnScroll={true}
-        />
+      {/* Quick Logger FAB - 임시 비활성화 */}
+      {false && showFAB && (
+        <div>FAB will be enabled later</div>
       )}
 
       {/* Quick Input Overlay */}
@@ -176,7 +180,7 @@ export function MainLayout({
         <QuickInputOverlay
           type={quickInputType}
           isOpen={true}
-          onClose={() => setQuickInputType(null)}
+          onClose={handleQuickInputClose}
           onSave={handleQuickInputSave}
         />
       )}
@@ -184,7 +188,7 @@ export function MainLayout({
       {/* Detailed Contact/Feed Modal */}
       <ContactFeedModal
         isOpen={isContactFeedModalOpen}
-        onClose={() => setIsContactFeedModalOpen(false)}
+        onClose={handleModalClose}
         onSaveContact={handleContactSave}
         onSaveFeed={handleFeedSave}
       />
@@ -222,6 +226,9 @@ export function MainLayout({
           <li>Shift + Tab: 이전 요소로 이동</li>
         </ul>
       </div>
+
+      {/* 개발 환경 성능 모니터 */}
+      <LazyPerformanceMonitor />
     </div>
   );
 }

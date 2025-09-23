@@ -14,7 +14,7 @@ import {
   Trash2,
   FileText,
   Calendar,
-  Won,
+  CircleDollarSign,
   Users,
   Building,
   Tag,
@@ -264,7 +264,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Won className="h-4 w-4" />
+                    <CircleDollarSign className="h-4 w-4" />
                     총 금액 (VAT 포함)
                   </div>
                   <div className="font-mono text-lg font-bold">
@@ -273,7 +273,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Won className="h-4 w-4" />
+                    <CircleDollarSign className="h-4 w-4" />
                     할인 금액
                   </div>
                   <div className="font-mono text-lg">

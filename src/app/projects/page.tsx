@@ -5,7 +5,8 @@
 
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useDebounce, createCurrencyFormatter, createNumberFormatter, perf } from '@/lib/performance'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -19,7 +20,7 @@ import {
   Eye,
   MoreHorizontal,
   Calendar,
-  Won,
+  CircleDollarSign,
   Users
 } from 'lucide-react'
 
@@ -75,21 +76,34 @@ export default function ProjectsPage() {
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [channelFilter, setChannelFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [sortBy, setSortBy] = useState('created_at')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
+  // Debounced search for better performance
+  const debouncedSetSearch = useDebounce((value: string) => {
+    setDebouncedSearch(value)
+    setPage(1) // Reset to first page on search
+  }, 300)
+
   // 선택된 프로젝트들
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  // Handle search input change
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value)
+    debouncedSetSearch(value)
+  }, [debouncedSetSearch])
 
   // 쿼리
   const projectsQuery = useProjects({
     page,
     limit,
-    search: search || undefined,
+    search: debouncedSearch || undefined, // Use debounced search
     status: statusFilter || undefined,
     channel_id: channelFilter || undefined,
     category_id: categoryFilter || undefined,
@@ -165,8 +179,14 @@ export default function ProjectsPage() {
     }
   }
 
-  // 정산 금액 계산
-  const getProjectSettlement = (project: ProjectWithRelations) => {
+  // Memoized formatters for performance
+  const currencyFormatter = useMemo(() => createCurrencyFormatter(), [])
+  const numberFormatter = useMemo(() => createNumberFormatter(), [])
+
+  // Memoized 정산 금액 계산
+  const getProjectSettlement = useCallback((project: ProjectWithRelations) => {
+    const startTime = Date.now()
+
     const totalDesignerAmount = project.designers.reduce((sum, designer) => {
       const settlement = calculateSettlement(
         project.gross_amount,
@@ -176,8 +196,10 @@ export default function ProjectsPage() {
       )
       return sum + settlement.afterWithholding
     }, 0)
+
+    perf.logComputation('getProjectSettlement', startTime)
     return totalDesignerAmount
-  }
+  }, [])
 
   if (isLoading) {
     return (
@@ -289,7 +311,7 @@ export default function ProjectsPage() {
                 <Input
                   placeholder="프로젝트명으로 검색..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -425,10 +447,10 @@ export default function ProjectsPage() {
                   <TableCell>{project.channel.name}</TableCell>
                   <TableCell>{project.category?.name || '-'}</TableCell>
                   <TableCell className="font-mono">
-                    {toKRW(project.gross_amount)}
+                    {currencyFormatter.format(project.gross_amount)}
                   </TableCell>
                   <TableCell className="font-mono">
-                    {toKRW(getProjectSettlement(project))}
+                    {currencyFormatter.format(getProjectSettlement(project))}
                   </TableCell>
                   <TableCell>
                     <div className="flex -space-x-2">

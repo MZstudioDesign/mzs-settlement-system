@@ -9,7 +9,7 @@ async function globalSetup(config: FullConfig) {
   console.log('🚀 MZS 정산 시스템 E2E 테스트 시작');
 
   // 개발 서버가 시작될 때까지 기다림
-  const baseURL = config.projects[0].use.baseURL || 'http://localhost:3002';
+  const baseURL = config.projects[0].use.baseURL || 'http://localhost:3001';
 
   try {
     const browser = await chromium.launch();
@@ -20,8 +20,8 @@ async function globalSetup(config: FullConfig) {
     // 홈페이지 로드 확인
     await page.goto(baseURL, { waitUntil: 'networkidle' });
 
-    // 기본 DOM 요소 확인
-    await page.waitForSelector('h1:has-text("안녕하세요!")');
+    // 기본 DOM 요소 확인 - 메인 대시보드 제목
+    await page.waitForSelector('h1:has-text("안녕하세요!")', { timeout: 10000 });
 
     console.log('✅ 개발 서버 정상 동작 확인');
 

@@ -37,29 +37,47 @@ export function MobileHeader({
       description: "메인 대시보드 및 현황"
     },
     {
-      label: "정산 계산기",
-      href: "/calculator",
-      icon: Calculator,
-      description: "새 프로젝트 정산 계산"
-    },
-    {
-      label: "팀원 관리",
-      href: "/team",
-      icon: Users,
-      description: "디자이너 및 지분 관리"
-    },
-    {
-      label: "프로젝트 현황",
+      label: "프로젝트",
       href: "/projects",
       icon: FileText,
-      description: "진행중인 프로젝트 관리"
+      description: "프로젝트 관리 및 정산"
     },
     {
-      label: "통계 분석",
-      href: "/analytics",
-      icon: BarChart3,
-      description: "매출 및 성과 분석"
+      label: "컨택",
+      href: "/contacts",
+      icon: Users,
+      description: "고객 컨택 이벤트 관리"
     },
+    {
+      label: "피드",
+      href: "/feed",
+      icon: BarChart3,
+      description: "피드백 활동 및 보상"
+    },
+    {
+      label: "팀 관리",
+      href: "/team",
+      icon: Users,
+      description: "팀원 및 업무 관리"
+    },
+    {
+      label: "자금 관리",
+      href: "/funds",
+      icon: Calculator,
+      description: "회사 고정비 및 개인 보조금"
+    },
+    {
+      label: "정산 관리",
+      href: "/settlements",
+      icon: Calculator,
+      description: "월별 정산 생성 및 관리"
+    },
+    {
+      label: "설정",
+      href: "/settings",
+      icon: Settings,
+      description: "시스템 설정 및 관리"
+    }
   ];
 
   return (

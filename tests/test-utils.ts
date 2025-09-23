@@ -3,7 +3,137 @@
  * 공통으로 사용되는 테스트 헬퍼 함수들을 정의
  */
 
-import { Page, expect } from '@playwright/test';
+import { Page, expect, BrowserContext } from '@playwright/test';
+
+/**
+ * 테스트용 로그인 정보
+ */
+export const TEST_CREDENTIALS = {
+  username: 'admin',
+  password: 'test123'
+};
+
+/**
+ * 테스트용 샘플 데이터
+ */
+export const SAMPLE_DATA = {
+  project: {
+    client_name: 'Test Client',
+    title: 'Test Project',
+    list_price_net: '1000000',
+    deposit_gross_T: '550000',
+    net_B: '500000'
+  },
+  member: {
+    name: '오유택',
+    code: 'OY'
+  },
+  contact: {
+    amount: 1000,
+    event_type: 'INCOMING'
+  },
+  feed: {
+    amount: 400,
+    fee_type: 'BELOW3'
+  }
+};
+
+/**
+ * 로그인 헬퍼 함수
+ */
+export async function login(page: Page, credentials = TEST_CREDENTIALS) {
+  await page.goto('/login');
+
+  // 로그인 폼 채우기
+  await page.fill('[name="username"]', credentials.username);
+  await page.fill('[name="password"]', credentials.password);
+
+  // 로그인 버튼 클릭
+  await page.click('button[type="submit"]');
+
+  // 대시보드로 리다이렉트 될 때까지 대기
+  await page.waitForURL('/');
+  await waitForPageLoad(page);
+}
+
+/**
+ * 로그아웃 헬퍼 함수
+ */
+export async function logout(page: Page) {
+  // 설정 메뉴나 로그아웃 버튼 찾기
+  const logoutButton = page.locator('button').filter({ hasText: '로그아웃' });
+  if (await logoutButton.count() > 0) {
+    await logoutButton.click();
+  }
+
+  // 로그인 페이지로 리다이렉트 될 때까지 대기
+  await page.waitForURL('/login');
+}
+
+/**
+ * 인증된 상태로 페이지 접근
+ */
+export async function authenticatedPage(page: Page, path = '/') {
+  await login(page);
+  if (path !== '/') {
+    await page.goto(path);
+    await waitForPageLoad(page);
+  }
+}
+
+/**
+ * 네트워크 오프라인 시뮬레이션
+ */
+export async function simulateOffline(context: BrowserContext) {
+  await context.setOffline(true);
+}
+
+/**
+ * 네트워크 온라인 복구
+ */
+export async function simulateOnline(context: BrowserContext) {
+  await context.setOffline(false);
+}
+
+/**
+ * FAB 버튼 클릭 헬퍼
+ */
+export async function clickFABButton(page: Page, buttonText: string) {
+  // FAB 열기
+  const fabButton = page.locator('[data-testid="fab-button"]').or(page.locator('.fab-trigger'));
+  await fabButton.click();
+  await page.waitForTimeout(300);
+
+  // 특정 액션 버튼 클릭
+  const actionButton = page.locator('button').filter({ hasText: buttonText });
+  await actionButton.click();
+  await page.waitForTimeout(500);
+}
+
+/**
+ * 멤버 선택 헬퍼
+ */
+export async function selectMember(page: Page, memberName: string) {
+  await selectDropdownOption(page, '[data-testid="member-select"]', memberName);
+}
+
+/**
+ * LocalStorage 데이터 확인 헬퍼
+ */
+export async function getLocalStorageData(page: Page, key: string) {
+  return await page.evaluate((key) => {
+    return localStorage.getItem(key);
+  }, key);
+}
+
+/**
+ * LocalStorage 데이터 설정 헬퍼
+ */
+export async function setLocalStorageData(page: Page, key: string, value: string) {
+  await page.evaluate(({ key, value }) => {
+    localStorage.setItem(key, value);
+  }, { key, value });
+}
 
 /**
  * 한국 통화 포맷 확인 헬퍼
@@ -147,6 +277,8 @@ export async function checkResponsiveLayout(page: Page, breakpoint: 'mobile' | '
   switch (breakpoint) {
     case 'mobile':
       expect(viewportSize?.width).toBeLessThanOrEqual(768);
+      // 모바일에서 햄버거 메뉴 표시 확인
+      await expect(page.locator('[data-testid="mobile-menu-trigger"]')).toBeVisible();
       break;
     case 'tablet':
       expect(viewportSize?.width).toBeGreaterThan(768);
@@ -154,6 +286,8 @@ export async function checkResponsiveLayout(page: Page, breakpoint: 'mobile' | '
       break;
     case 'desktop':
       expect(viewportSize?.width).toBeGreaterThan(1024);
+      // 데스크톱에서 사이드바 표시 확인
+      await expect(page.locator('[data-testid="desktop-sidebar"]')).toBeVisible();
       break;
   }
 }
@@ -262,7 +396,152 @@ export async function setDesignerShares(page: Page, shares: { percent: number; b
  * 테스트 데이터 정리 헬퍼
  */
 export async function cleanupTestData(page: Page) {
+  // LocalStorage 정리
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
   // 테스트로 생성된 데이터 정리
-  // 실제 구현에서는 API 호출이나 데이터베이스 정리 로직 추가
   console.log('Test data cleanup completed');
+}
+
+/**
+ * API 응답 대기 헬퍼
+ */
+export async function waitForAPIResponse(page: Page, urlPattern: string | RegExp, timeout = 10000) {
+  return await page.waitForResponse(
+    (response) => {
+      const url = response.url();
+      if (typeof urlPattern === 'string') {
+        return url.includes(urlPattern);
+      }
+      return urlPattern.test(url);
+    },
+    { timeout }
+  );
+}
+
+/**
+ * 모바일 뷰포트 설정 헬퍼
+ */
+export async function setMobileViewport(page: Page) {
+  await page.setViewportSize({ width: 375, height: 812 });
+}
+
+/**
+ * 데스크톱 뷰포트 설정 헬퍼
+ */
+export async function setDesktopViewport(page: Page) {
+  await page.setViewportSize({ width: 1280, height: 720 });
+}
+
+/**
+ * 파일 다운로드 대기 헬퍼
+ */
+export async function waitForDownload(page: Page, triggerSelector: string) {
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.click(triggerSelector)
+  ]);
+  return download;
+}
+
+/**
+ * 토스트 메시지 확인 헬퍼
+ */
+export async function expectToastMessage(page: Page, message?: string) {
+  const toastSelectors = [
+    '[data-sonner-toast]',
+    '.toast',
+    '[role="status"]',
+    '.Toastify__toast'
+  ];
+
+  let toastFound = false;
+  for (const selector of toastSelectors) {
+    const elements = page.locator(selector);
+    if (await elements.count() > 0) {
+      await expect(elements.first()).toBeVisible();
+      if (message) {
+        await expect(elements.first()).toContainText(message);
+      }
+      toastFound = true;
+      break;
+    }
+  }
+
+  expect(toastFound).toBeTruthy();
+}
+
+/**
+ * 페이지 로딩 스피너 대기 헬퍼
+ */
+export async function waitForLoadingToFinish(page: Page) {
+  const loadingSelectors = [
+    '[data-testid="loading"]',
+    '.loading',
+    '.spinner',
+    '[aria-label="Loading"]'
+  ];
+
+  for (const selector of loadingSelectors) {
+    const elements = page.locator(selector);
+    if (await elements.count() > 0) {
+      await expect(elements.first()).toBeHidden({ timeout: 10000 });
+    }
+  }
+}
+
+/**
+ * 다중 파일 업로드 헬퍼
+ */
+export async function uploadFiles(page: Page, inputSelector: string, filePaths: string[]) {
+  const fileChooser = page.locator(inputSelector);
+  await fileChooser.setInputFiles(filePaths);
+  await page.waitForTimeout(1000); // 업로드 처리 시간
+}
+
+/**
+ * 날짜 입력 헬퍼
+ */
+export async function fillDateInput(page: Page, selector: string, date: string) {
+  // date format: YYYY-MM-DD
+  await page.fill(selector, date);
+  await page.keyboard.press('Enter');
+}
+
+/**
+ * 수치 검증 헬퍼 (허용 오차 범위)
+ */
+export async function expectNumberWithTolerance(
+  page: Page,
+  selector: string,
+  expectedValue: number,
+  tolerance: number = 100
+) {
+  const element = page.locator(selector);
+  const textContent = await element.textContent();
+
+  if (textContent) {
+    const actualValue = parseFloat(textContent.replace(/[^\d.-]/g, ''));
+    const difference = Math.abs(actualValue - expectedValue);
+    expect(difference).toBeLessThanOrEqual(tolerance);
+  }
+}
+
+/**
+ * 드래그 앤 드롭 헬퍼
+ */
+export async function dragAndDrop(page: Page, sourceSelector: string, targetSelector: string) {
+  await page.dragAndDrop(sourceSelector, targetSelector);
+  await page.waitForTimeout(500);
+}
+
+/**
+ * 컨텍스트 메뉴 헬퍼
+ */
+export async function rightClick(page: Page, selector: string) {
+  await page.click(selector, { button: 'right' });
+  await page.waitForTimeout(300);
 }

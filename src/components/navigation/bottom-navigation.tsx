@@ -8,7 +8,9 @@ import {
   Calculator,
   Users,
   BarChart3,
-  FileText
+  FileText,
+  MessageCircle,
+  Settings
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -27,21 +29,27 @@ export function BottomNavigation({ className }: BottomNavigationProps) {
       notifications: 0,
     },
     {
-      label: "새 프로젝트",
-      href: "/projects/new",
-      icon: Calculator,
-      notifications: 0,
-    },
-    {
       label: "프로젝트",
       href: "/projects",
       icon: FileText,
       notifications: 0,
     },
     {
-      label: "통계",
-      href: "/projects",
-      icon: BarChart3,
+      label: "컨택",
+      href: "/contacts",
+      icon: Users,
+      notifications: 0,
+    },
+    {
+      label: "팀",
+      href: "/team",
+      icon: MessageCircle,
+      notifications: 0,
+    },
+    {
+      label: "정산",
+      href: "/settlements",
+      icon: Calculator,
       notifications: 0,
     },
   ];

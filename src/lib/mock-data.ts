@@ -8,7 +8,13 @@ import type {
   Category,
   ProjectWithRelations,
   PaginatedResponse,
-  ApiResponse
+  ApiResponse,
+  Contact,
+  ContactWithRelations,
+  CreateContactForm,
+  FeedLog,
+  FeedLogWithMember,
+  CreateFeedLogForm
 } from '@/types/database'
 
 // Mock Members
@@ -445,6 +451,140 @@ export const mockApi = {
     mockProjects.splice(projectIndex, 1)
 
     return { message: 'Project deleted successfully' }
+  },
+
+  // Contact API methods
+  getContacts: async (params?: any): Promise<PaginatedResponse<ContactWithRelations>> => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    return {
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+      }
+    }
+  },
+
+  createContact: async (data: CreateContactForm): Promise<ApiResponse<Contact>> => {
+    await new Promise(resolve => setTimeout(resolve, 400))
+
+    const contactAmounts = {
+      INCOMING: 1000,
+      CHAT: 1000,
+      GUIDE: 2000,
+    }
+
+    const newContact: Contact = {
+      id: `contact_${Date.now()}`,
+      member_id: data.member_id,
+      project_id: data.project_id,
+      contact_type: data.contact_type,
+      amount: contactAmounts[data.contact_type],
+      event_date: data.event_date || new Date().toISOString().split('T')[0],
+      notes: data.notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    return {
+      data: newContact,
+      message: 'Contact logged successfully'
+    }
+  },
+
+  // Feed Log API methods
+  getFeedLogs: async (params?: any): Promise<PaginatedResponse<FeedLogWithMember>> => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    return {
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+      }
+    }
+  },
+
+  createFeedLog: async (data: CreateFeedLogForm): Promise<ApiResponse<FeedLog>> => {
+    await new Promise(resolve => setTimeout(resolve, 400))
+
+    const feedAmounts = {
+      BELOW3: 400,
+      GTE3: 1000,
+    }
+
+    const newFeedLog: FeedLog = {
+      id: `feed_${Date.now()}`,
+      member_id: data.member_id,
+      feed_type: data.feed_type,
+      amount: feedAmounts[data.feed_type],
+      event_date: data.event_date || new Date().toISOString().split('T')[0],
+      notes: data.notes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    return {
+      data: newFeedLog,
+      message: 'Feed log created successfully'
+    }
+  },
+
+  // Members API methods
+  getMembers: async (): Promise<ApiResponse<Member[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    return {
+      data: mockMembers.filter(m => m.active),
+      message: 'Members fetched successfully'
+    }
+  },
+
+  getChannels: async (): Promise<ApiResponse<Channel[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    return {
+      data: mockChannels.filter(c => c.active),
+      message: 'Channels fetched successfully'
+    }
+  },
+
+  getCategories: async (): Promise<ApiResponse<Category[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    return {
+      data: mockCategories.filter(c => c.active),
+      message: 'Categories fetched successfully'
+    }
+  },
+
+  getProjectStats: async (): Promise<ApiResponse<{
+    total: number
+    pending: number
+    approved: number
+    completed: number
+    cancelled: number
+  }>> => {
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const stats = mockProjects.reduce(
+      (acc, project) => {
+        acc.total++
+        acc[project.status.toLowerCase() as keyof typeof acc]++
+        return acc
+      },
+      { total: 0, pending: 0, approved: 0, completed: 0, cancelled: 0 }
+    )
+
+    return {
+      data: stats,
+      message: 'Project stats fetched successfully'
+    }
   }
 }
 

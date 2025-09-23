@@ -171,3 +171,183 @@ export function validateDesignerPercentages(designers: Array<{ percent: number }
 export function validateBonusPercentage(bonusPct: number): boolean {
   return bonusPct >= 0 && bonusPct <= 20
 }
+
+/**
+ * Format percentage with one decimal place
+ * @param value - Percentage value (0-100)
+ * @returns Formatted percentage string like "15.5%"
+ */
+export function formatPercentage(value: number): string {
+  return `${value.toFixed(1)}%`
+}
+
+/**
+ * Format large numbers with Korean units (만, 억)
+ * @param amount - Amount in won
+ * @returns Formatted string with Korean units like "15만원", "1억2천만원"
+ */
+export function formatKoreanUnits(amount: number): string {
+  if (amount === 0) return '0원'
+
+  const absAmount = Math.abs(amount)
+  const sign = amount < 0 ? '-' : ''
+
+  if (absAmount >= 100000000) { // 억 단위
+    const eok = Math.floor(absAmount / 100000000)
+    const remainder = absAmount % 100000000
+    const man = Math.floor(remainder / 10000)
+
+    if (man === 0) {
+      return `${sign}${eok}억원`
+    } else if (man < 1000) {
+      return `${sign}${eok}억${man}만원`
+    } else {
+      const thousand = Math.floor(man / 1000)
+      const remainingMan = man % 1000
+      if (remainingMan === 0) {
+        return `${sign}${eok}억${thousand}천만원`
+      } else {
+        return `${sign}${eok}억${thousand}천${remainingMan}만원`
+      }
+    }
+  } else if (absAmount >= 10000) { // 만 단위
+    const man = Math.floor(absAmount / 10000)
+    const remainder = absAmount % 10000
+
+    if (remainder === 0) {
+      return `${sign}${man}만원`
+    } else if (remainder < 1000) {
+      return `${sign}${man}만${remainder}원`
+    } else {
+      const thousand = Math.floor(remainder / 1000)
+      const remainingAmount = remainder % 1000
+      if (remainingAmount === 0) {
+        return `${sign}${man}만${thousand}천원`
+      } else {
+        return `${sign}${man}만${thousand}천${remainingAmount}원`
+      }
+    }
+  } else {
+    return `${sign}${absAmount}원`
+  }
+}
+
+/**
+ * Calculate and format tax-exclusive amount from tax-inclusive amount
+ * @param taxInclusiveAmount - Amount including tax
+ * @param taxRate - Tax rate (e.g., 0.1 for 10%)
+ * @returns Object with formatted amounts
+ */
+export function formatTaxBreakdown(taxInclusiveAmount: number, taxRate: number = 0.1) {
+  const taxExclusiveAmount = Math.round(taxInclusiveAmount / (1 + taxRate))
+  const taxAmount = taxInclusiveAmount - taxExclusiveAmount
+
+  return {
+    inclusive: toKRW(taxInclusiveAmount),
+    exclusive: toKRW(taxExclusiveAmount),
+    tax: toKRW(taxAmount),
+    taxRate: formatPercentage(taxRate * 100)
+  }
+}
+
+/**
+ * Format amount with both regular and Korean unit formats
+ * @param amount - Amount in won
+ * @returns Object with both formats
+ */
+export function formatAmountBoth(amount: number) {
+  return {
+    standard: toKRW(amount),
+    korean: formatKoreanUnits(amount),
+    number: formatNumber(amount)
+  }
+}
+
+/**
+ * Format settlement summary for display
+ * @param grossT - Gross amount including VAT
+ * @param netB - Net amount excluding VAT
+ * @param designerTotal - Total designer payout
+ * @param companyTotal - Company profit
+ * @returns Formatted summary object
+ */
+export function formatSettlementSummary(
+  grossT: number,
+  netB: number,
+  designerTotal: number,
+  companyTotal: number
+) {
+  const designerPercent = netB > 0 ? (designerTotal / netB) * 100 : 0
+  const companyPercent = netB > 0 ? (companyTotal / netB) * 100 : 0
+
+  return {
+    gross: formatAmountBoth(grossT),
+    net: formatAmountBoth(netB),
+    designer: {
+      amount: formatAmountBoth(designerTotal),
+      percentage: formatPercentage(designerPercent)
+    },
+    company: {
+      amount: formatAmountBoth(companyTotal),
+      percentage: formatPercentage(companyPercent)
+    },
+    vatAmount: formatAmountBoth(grossT - netB)
+  }
+}
+
+/**
+ * Validate and parse currency input string
+ * @param input - User input string
+ * @returns Parsed amount or null if invalid
+ */
+export function safeParseCurrency(input: string): number | null {
+  if (!input || typeof input !== 'string') return null
+
+  // Remove all non-digit characters except for negative sign
+  const cleaned = input.replace(/[^\d-]/g, '')
+
+  if (cleaned === '' || cleaned === '-') return null
+
+  const parsed = parseInt(cleaned, 10)
+
+  // Validate reasonable range (0 to 10억)
+  if (isNaN(parsed) || parsed < 0 || parsed > 1000000000) {
+    return null
+  }
+
+  return parsed
+}
+
+/**
+ * Format currency for input field (remove currency symbol)
+ * @param amount - Amount in won
+ * @returns Plain number string with commas
+ */
+export function formatCurrencyInput(amount: number): string {
+  if (amount === 0) return ''
+  return formatNumber(amount)
+}
+
+/**
+ * Calculate compound amounts for settlement preview
+ * @param amounts - Array of individual amounts
+ * @returns Summary with totals and breakdowns
+ */
+export function calculateCompoundAmounts(amounts: number[]) {
+  const total = amounts.reduce((sum, amount) => sum + amount, 0)
+  const withholding = Math.round(total * 0.033) // 3.3% withholding tax
+  const afterWithholding = total - withholding
+
+  return {
+    individual: amounts.map(amount => ({
+      gross: toKRW(amount),
+      withholding: toKRW(Math.round(amount * 0.033)),
+      net: toKRW(amount - Math.round(amount * 0.033))
+    })),
+    totals: {
+      gross: toKRW(total),
+      withholding: toKRW(withholding),
+      net: toKRW(afterWithholding)
+    }
+  }
+}

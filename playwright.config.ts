@@ -33,7 +33,7 @@ export default defineConfig({
   /* 전역 설정 */
   use: {
     /* 기본 URL */
-    baseURL: process.env.BASE_URL || 'http://localhost:3004',
+    baseURL: process.env.BASE_URL || 'http://localhost:3001',
 
     /* 모든 요청에 대한 추적 설정 */
     trace: 'on-first-retry',
@@ -53,7 +53,7 @@ export default defineConfig({
   /* 테스트 전에 개발 서버 시작 */
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3004',
+    url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

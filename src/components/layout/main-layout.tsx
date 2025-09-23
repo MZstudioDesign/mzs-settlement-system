@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { MobileHeader } from "@/components/navigation/mobile-header";
 import { BottomNavigation } from "@/components/navigation/bottom-navigation";
 import { Breadcrumb, BreadcrumbItem } from "@/components/navigation/breadcrumb";
-import { SettlementFAB } from "@/components/fab/floating-action-button";
+import { MZSQuickLoggerFAB } from "@/components/fab/quick-logger-fab";
 import { QuickInputOverlay } from "@/components/overlays/quick-input-overlay";
 import { ContactFeedModal } from "@/components/modals/contact-feed-modal";
 import { cn, mobile, a11y } from "@/lib/utils";
@@ -37,8 +37,7 @@ export function MainLayout({
   const router = useRouter();
   const [quickInputType, setQuickInputType] = useState<QuickInputType>(null);
   const [isContactFeedModalOpen, setIsContactFeedModalOpen] = useState(false);
-  const [contactCount, setContactCount] = useState(2); // 임시 데이터
-  const [feedCount, setFeedCount] = useState(1); // 임시 데이터
+  // Removed contactCount and feedCount - now handled by MZSQuickLoggerFAB
   const [isMobile, setIsMobile] = useState(false);
 
   // 반응형 감지
@@ -95,31 +94,7 @@ export function MainLayout({
     return () => mobile.unlockScroll();
   }, [quickInputType, isContactFeedModalOpen]);
 
-  // FAB 액션 핸들러
-  const handleCalculateSettlement = () => {
-    setQuickInputType('settlement');
-    mobile.hapticFeedback.light();
-  };
-
-  const handleAddContact = () => {
-    setQuickInputType('contact');
-    mobile.hapticFeedback.light();
-  };
-
-  const handleAddFeed = () => {
-    setQuickInputType('feed');
-    mobile.hapticFeedback.light();
-  };
-
-  const handleViewTeam = () => {
-    router.push('/team');
-    mobile.hapticFeedback.light();
-  };
-
-  const handleViewAnalytics = () => {
-    router.push('/analytics');
-    mobile.hapticFeedback.light();
-  };
+  // FAB handlers removed - now handled by MZSQuickLoggerFAB internally
 
   // 빠른 입력 저장 핸들러
   const handleQuickInputSave = (data: any) => {
@@ -129,12 +104,7 @@ export function MainLayout({
     // 성공 피드백
     mobile.hapticFeedback.medium();
 
-    // 카운트 업데이트 (임시)
-    if (quickInputType === 'contact') {
-      setContactCount(prev => prev + 1);
-    } else if (quickInputType === 'feed') {
-      setFeedCount(prev => prev + 1);
-    }
+    // Count updates now handled by MZSQuickLoggerFAB
   };
 
   // 상세 입력 모달 저장 핸들러
@@ -191,16 +161,13 @@ export function MainLayout({
       {/* Bottom Navigation */}
       {showBottomNav && <BottomNavigation />}
 
-      {/* Floating Action Button */}
+      {/* MZS Quick Logger FAB */}
       {showFAB && (
-        <SettlementFAB
-          onCalculateSettlement={handleCalculateSettlement}
-          onAddContact={handleAddContact}
-          onAddFeed={handleAddFeed}
-          onViewTeam={handleViewTeam}
-          onViewAnalytics={handleViewAnalytics}
-          contactCount={contactCount}
-          feedCount={feedCount}
+        <MZSQuickLoggerFAB
+          show={true}
+          position="bottom-right"
+          size="md"
+          hideOnScroll={true}
         />
       )}
 

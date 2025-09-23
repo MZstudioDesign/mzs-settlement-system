@@ -17,6 +17,12 @@ import type {
   Category,
   ProjectFile,
   DesignerAllocation,
+  Contact,
+  ContactWithRelations,
+  CreateContactForm,
+  FeedLog,
+  FeedLogWithMember,
+  CreateFeedLogForm,
 } from '@/types/database'
 
 // Check if Supabase is configured
@@ -490,6 +496,375 @@ export const fileApi = {
       if (error) return handleSupabaseError(error)
 
       return successResponse(undefined, 'File deleted successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+}
+
+// Contact API functions
+export const contactsApi = {
+  /**
+   * Get contacts with optional filtering and pagination
+   */
+  async getContacts(params?: {
+    page?: number
+    limit?: number
+    member_id?: string
+    project_id?: string
+    contact_type?: string
+    date_from?: string
+    date_to?: string
+    sort_by?: string
+    sort_order?: 'asc' | 'desc'
+  }): Promise<PaginatedResponse<ContactWithRelations>> {
+    // Use mock data if Supabase is not configured
+    if (!isSupabaseConfigured()) {
+      return mockApi.getContacts(params)
+    }
+
+    const {
+      page = 1,
+      limit = 10,
+      member_id,
+      project_id,
+      contact_type,
+      date_from,
+      date_to,
+      sort_by = 'event_date',
+      sort_order = 'desc',
+    } = params || {}
+
+    try {
+      let query = tables
+        .contacts()
+        .select(`
+          *,
+          member:members(*),
+          project:projects(*)
+        `)
+
+      // Apply filters
+      if (member_id) {
+        query = query.eq('member_id', member_id)
+      }
+      if (project_id) {
+        query = query.eq('project_id', project_id)
+      }
+      if (contact_type) {
+        query = query.eq('contact_type', contact_type)
+      }
+      if (date_from) {
+        query = query.gte('event_date', date_from)
+      }
+      if (date_to) {
+        query = query.lte('event_date', date_to)
+      }
+
+      // Get total count for pagination
+      const { count } = await query.select('*', { count: 'exact', head: true })
+      const total = count || 0
+
+      // Apply sorting and pagination
+      const { data, error } = await query
+        .order(sort_by, { ascending: sort_order === 'asc' })
+        .range((page - 1) * limit, page * limit - 1)
+
+      if (error) return handleSupabaseError(error)
+
+      return paginatedResponse(data as ContactWithRelations[], page, limit, total)
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Create new contact
+   */
+  async createContact(contactData: CreateContactForm): Promise<ApiResponse<Contact>> {
+    // Use mock data if Supabase is not configured
+    if (!isSupabaseConfigured()) {
+      return mockApi.createContact(contactData)
+    }
+
+    try {
+      // Get the fixed amount for the contact type
+      const contactAmounts = {
+        INCOMING: 1000,
+        CHAT: 1000,
+        GUIDE: 2000,
+      }
+
+      const { data, error } = await tables
+        .contacts()
+        .insert({
+          member_id: contactData.member_id,
+          project_id: contactData.project_id,
+          contact_type: contactData.contact_type,
+          amount: contactAmounts[contactData.contact_type],
+          event_date: contactData.event_date || new Date().toISOString().split('T')[0],
+          notes: contactData.notes,
+        })
+        .select()
+        .single()
+
+      if (error) return handleSupabaseError(error)
+
+      return successResponse(data, 'Contact logged successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Update contact
+   */
+  async updateContact(id: string, updates: Partial<CreateContactForm>): Promise<ApiResponse<Contact>> {
+    try {
+      const { data, error } = await tables
+        .contacts()
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) return handleSupabaseError(error)
+
+      return successResponse(data, 'Contact updated successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Delete contact
+   */
+  async deleteContact(id: string): Promise<ApiResponse<void>> {
+    try {
+      const { error } = await tables.contacts().delete().eq('id', id)
+
+      if (error) return handleSupabaseError(error)
+
+      return successResponse(undefined, 'Contact deleted successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Get contact statistics
+   */
+  async getContactStats(memberId?: string): Promise<ApiResponse<{
+    total: number
+    incoming: number
+    chat: number
+    guide: number
+    totalAmount: number
+  }>> {
+    try {
+      let query = tables.contacts().select('contact_type, amount')
+
+      if (memberId) {
+        query = query.eq('member_id', memberId)
+      }
+
+      const { data, error } = await query
+
+      if (error) return handleSupabaseError(error)
+
+      const stats = data.reduce(
+        (acc, contact) => {
+          acc.total++
+          acc.totalAmount += contact.amount
+          acc[contact.contact_type.toLowerCase() as keyof typeof acc]++
+          return acc
+        },
+        { total: 0, incoming: 0, chat: 0, guide: 0, totalAmount: 0 }
+      )
+
+      return successResponse(stats)
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+}
+
+// Feed Log API functions
+export const feedLogsApi = {
+  /**
+   * Get feed logs with optional filtering and pagination
+   */
+  async getFeedLogs(params?: {
+    page?: number
+    limit?: number
+    member_id?: string
+    feed_type?: string
+    date_from?: string
+    date_to?: string
+    sort_by?: string
+    sort_order?: 'asc' | 'desc'
+  }): Promise<PaginatedResponse<FeedLogWithMember>> {
+    // Use mock data if Supabase is not configured
+    if (!isSupabaseConfigured()) {
+      return mockApi.getFeedLogs(params)
+    }
+
+    const {
+      page = 1,
+      limit = 10,
+      member_id,
+      feed_type,
+      date_from,
+      date_to,
+      sort_by = 'event_date',
+      sort_order = 'desc',
+    } = params || {}
+
+    try {
+      let query = tables
+        .feedLogs()
+        .select(`
+          *,
+          member:members(*)
+        `)
+
+      // Apply filters
+      if (member_id) {
+        query = query.eq('member_id', member_id)
+      }
+      if (feed_type) {
+        query = query.eq('feed_type', feed_type)
+      }
+      if (date_from) {
+        query = query.gte('event_date', date_from)
+      }
+      if (date_to) {
+        query = query.lte('event_date', date_to)
+      }
+
+      // Get total count for pagination
+      const { count } = await query.select('*', { count: 'exact', head: true })
+      const total = count || 0
+
+      // Apply sorting and pagination
+      const { data, error } = await query
+        .order(sort_by, { ascending: sort_order === 'asc' })
+        .range((page - 1) * limit, page * limit - 1)
+
+      if (error) return handleSupabaseError(error)
+
+      return paginatedResponse(data as FeedLogWithMember[], page, limit, total)
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Create new feed log
+   */
+  async createFeedLog(feedData: CreateFeedLogForm): Promise<ApiResponse<FeedLog>> {
+    // Use mock data if Supabase is not configured
+    if (!isSupabaseConfigured()) {
+      return mockApi.createFeedLog(feedData)
+    }
+
+    try {
+      // Get the fixed amount for the feed type
+      const feedAmounts = {
+        BELOW3: 400,
+        GTE3: 1000,
+      }
+
+      const { data, error } = await tables
+        .feedLogs()
+        .insert({
+          member_id: feedData.member_id,
+          feed_type: feedData.feed_type,
+          amount: feedAmounts[feedData.feed_type],
+          event_date: feedData.event_date || new Date().toISOString().split('T')[0],
+          notes: feedData.notes,
+        })
+        .select()
+        .single()
+
+      if (error) return handleSupabaseError(error)
+
+      return successResponse(data, 'Feed log created successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Update feed log
+   */
+  async updateFeedLog(id: string, updates: Partial<CreateFeedLogForm>): Promise<ApiResponse<FeedLog>> {
+    try {
+      const { data, error } = await tables
+        .feedLogs()
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) return handleSupabaseError(error)
+
+      return successResponse(data, 'Feed log updated successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Delete feed log
+   */
+  async deleteFeedLog(id: string): Promise<ApiResponse<void>> {
+    try {
+      const { error } = await tables.feedLogs().delete().eq('id', id)
+
+      if (error) return handleSupabaseError(error)
+
+      return successResponse(undefined, 'Feed log deleted successfully')
+    } catch (error) {
+      return handleSupabaseError(error)
+    }
+  },
+
+  /**
+   * Get feed log statistics
+   */
+  async getFeedStats(memberId?: string): Promise<ApiResponse<{
+    total: number
+    below3: number
+    gte3: number
+    totalAmount: number
+  }>> {
+    try {
+      let query = tables.feedLogs().select('feed_type, amount')
+
+      if (memberId) {
+        query = query.eq('member_id', memberId)
+      }
+
+      const { data, error } = await query
+
+      if (error) return handleSupabaseError(error)
+
+      const stats = data.reduce(
+        (acc, feed) => {
+          acc.total++
+          acc.totalAmount += feed.amount
+          if (feed.feed_type === 'BELOW3') {
+            acc.below3++
+          } else {
+            acc.gte3++
+          }
+          return acc
+        },
+        { total: 0, below3: 0, gte3: 0, totalAmount: 0 }
+      )
+
+      return successResponse(stats)
     } catch (error) {
       return handleSupabaseError(error)
     }

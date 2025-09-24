@@ -1,66 +1,56 @@
-/**
- * Supabase 연결 테스트 스크립트
- */
+const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
 
-const { createClient } = require('@supabase/supabase-js')
-require('dotenv').config({ path: '.env.local' })
+require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-console.log('🔍 Supabase 연결 테스트...')
-console.log('URL:', supabaseUrl)
-console.log('Key (first 20 chars):', supabaseKey?.substring(0, 20) + '...')
+console.log('🔗 Testing Supabase connection...');
+console.log('📡 URL:', supabaseUrl);
+console.log('🔐 Service Key:', serviceRoleKey ? `${serviceRoleKey.substring(0, 20)}...` : 'Missing');
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ 환경변수가 설정되지 않았습니다.')
-  process.exit(1)
-}
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { persistSession: false }
+});
 
-const supabase = createClient(supabaseUrl, supabaseKey)
-
-async function testConnection() {
+async function test() {
   try {
-    console.log('🔗 연결 중...')
+    // Test basic connection
+    console.log('\n📋 Testing basic auth...');
+    const { data: authData, error: authError } = await supabase.auth.getSession();
+    console.log('Auth result:', authError ? `Error: ${authError.message}` : 'OK');
 
-    // 현재 테이블 목록 확인
-    const { data: tables, error } = await supabase
+    // Try to list tables
+    console.log('\n📊 Testing database access...');
+    const { data, error } = await supabase
       .from('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public')
-
+      .limit(5);
+      
     if (error) {
-      console.error('❌ 테이블 조회 실패:', error.message)
-      return
-    }
-
-    console.log('✅ 연결 성공!')
-    console.log('📋 현재 테이블 목록:')
-
-    if (tables && tables.length > 0) {
-      tables.forEach(table => {
-        console.log(`  - ${table.table_name}`)
-      })
+      console.log('❌ Table list error:', error.message);
     } else {
-      console.log('  (테이블 없음)')
+      console.log('✅ Found tables:', data?.map(t => t.table_name) || []);
     }
 
-    // 멤버 데이터 확인
-    console.log('\n👥 멤버 데이터 확인...')
-    const { data: members, error: memberError } = await supabase
+    // Try members table specifically  
+    console.log('\n👥 Testing members table...');
+    const { data: members, error: membersError } = await supabase
       .from('members')
       .select('*')
-      .limit(5)
+      .limit(1);
 
-    if (memberError) {
-      console.log('  ℹ️ 멤버 테이블이 아직 생성되지 않았습니다:', memberError.message)
+    if (membersError) {
+      console.log('❌ Members error:', membersError.message);
     } else {
-      console.log('  ✅ 멤버 데이터:', members?.length || 0, '개 발견')
+      console.log('✅ Members accessible:', members?.length || 0, 'rows');
     }
 
-  } catch (error) {
-    console.error('❌ 연결 실패:', error.message)
+  } catch (err) {
+    console.error('❌ Connection failed:', err.message);
   }
 }
 
-testConnection()
+test();

@@ -77,7 +77,12 @@ export default function Dashboard() {
 
   // 미지급 현황 로드
   useEffect(() => {
-    getUnpaidSummary().then(setUnpaidSummary).catch(console.error);
+    getUnpaidSummary()
+      .then(setUnpaidSummary)
+      .catch((error) => {
+        console.warn('미지급 데이터 로드 실패 (테이블이 없을 수 있음):', error.message);
+        setUnpaidSummary(null); // 기본값 설정
+      });
   }, []);
 
   // Memoized calculation functions

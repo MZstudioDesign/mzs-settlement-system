@@ -47,6 +47,44 @@ export interface UnpaidItem {
  * 전체 미지급 금액 요약 정보 조회
  */
 export async function getUnpaidSummary(): Promise<UnpaidSummary> {
+  // 개발 환경에서는 목업 데이터 반환
+  if (process.env.NODE_ENV === 'development') {
+    console.log('개발 모드: 목업 미지급 데이터 사용')
+    return {
+      totalUnpaidAmount: 2340000,
+      totalUnpaidCount: 5,
+      unpaidByMember: [
+        {
+          memberId: 'dev-oy',
+          memberName: '오유택',
+          memberCode: 'OY',
+          unpaidAmount: 800000,
+          unpaidCount: 2
+        },
+        {
+          memberId: 'dev-le',
+          memberName: '이예천',
+          memberCode: 'LE',
+          unpaidAmount: 650000,
+          unpaidCount: 1
+        },
+        {
+          memberId: 'dev-ky',
+          memberName: '김연지',
+          memberCode: 'KY',
+          unpaidAmount: 890000,
+          unpaidCount: 2
+        }
+      ],
+      unpaidByType: {
+        design: 1800000,
+        contact: 90000,
+        feed: 150000,
+        team: 200000,
+        mileage: 100000
+      }
+    }
+  }
 
   const { data: unpaidItems, error } = await supabase
     .from('settlement_items')

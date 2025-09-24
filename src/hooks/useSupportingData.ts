@@ -19,7 +19,7 @@ async function fetchSupportingData<T>(type: string): Promise<ApiResponse<T>> {
   const response = await fetch(`/api/supporting-data?type=${type}`)
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch ${type}`)
+    throw new Error(`Failed to fetch ${type}: ${response.status}`)
   }
 
   return response.json()
@@ -71,5 +71,10 @@ export function useAllSupportingData() {
     queryKey: supportingDataKeys.allData(),
     queryFn: fetchAllSupportingData,
     staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 2, // 최대 2번 재시도로 무한 루프 방지
+    retryDelay: 1000, // 1초 간격으로 재시도
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 리페치 방지
+    refetchOnReconnect: false, // 재연결 시 리페치 방지
+    gcTime: 1000 * 60 * 15, // 15분 캐시 유지
   })
 }

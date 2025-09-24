@@ -47,17 +47,33 @@ export default function NewProjectPage() {
     }
   }
 
-  // 로딩 상태
-  if (supportingDataQuery.isLoading) {
-    return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-96 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    )
+  // 로딩 상태 - 5초 후 에러 시에도 폼 표시 (성능 개선)
+  const showContent = !supportingDataQuery.isLoading || supportingDataQuery.isError
+
+  // 기본 데이터 (API 실패 시 fallback)
+  const fallbackData = {
+    members: [
+      { id: '1', name: '오유택', code: 'OY' },
+      { id: '2', name: '이예천', code: 'LE' },
+      { id: '3', name: '김연지', code: 'KY' },
+      { id: '4', name: '김하늘', code: 'KH' },
+      { id: '5', name: '이정수', code: 'IJ' },
+      { id: '6', name: '박지윤', code: 'PJ' }
+    ],
+    channels: [
+      { id: '1', name: '크몽', fee_rate: 0.21 },
+      { id: '2', name: '계좌입금', fee_rate: 0 }
+    ],
+    categories: [
+      { id: '1', name: '카드뉴스' },
+      { id: '2', name: '포스터' },
+      { id: '3', name: '현수막/배너' },
+      { id: '4', name: '메뉴판' },
+      { id: '5', name: '블로그스킨' }
+    ]
   }
+
+  const supportingData = supportingDataQuery.data?.data || fallbackData
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -98,11 +114,18 @@ export default function NewProjectPage() {
             </CardHeader>
             <CardContent>
               <ProjectForm
-                supportingData={supportingDataQuery.data?.data}
+                supportingData={supportingData}
                 onSubmit={handleSubmit}
                 isLoading={createProjectMutation.isPending}
                 submitLabel="프로젝트 생성"
               />
+              {supportingDataQuery.isError && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-700">
+                    ⚠️ 네트워크 문제로 최신 데이터를 불러오지 못했습니다. 기본 설정으로 진행합니다.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

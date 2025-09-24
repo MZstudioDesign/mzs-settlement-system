@@ -24,6 +24,7 @@ import {
   ArrowDownRight
 } from "lucide-react";
 import { UnpaidSummaryCard } from '@/components/dashboard/unpaid-summary';
+import { NewProjectModal } from '@/components/modals/new-project-modal';
 import { getUnpaidSummary, type UnpaidSummary } from '@/lib/unpaid-tracker';
 import { toKRW } from '@/lib/currency';
 
@@ -119,12 +120,12 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button asChild>
-              <Link href="/projects/new">
+            <NewProjectModal>
+              <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 새 프로젝트
-              </Link>
-            </Button>
+              </Button>
+            </NewProjectModal>
             <Button variant="outline" asChild>
               <Link href="/settlements">
                 <Calculator className="mr-2 h-4 w-4" />
@@ -352,12 +353,12 @@ export default function Dashboard() {
         <section className="bg-muted/50 rounded-2xl p-6">
           <h3 className="text-xl font-semibold mb-4">빠른 작업</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button className="h-auto p-4 flex-col gap-2" variant="outline" asChild>
-              <Link href="/projects/new">
+            <NewProjectModal>
+              <Button className="h-auto p-4 flex-col gap-2" variant="outline">
                 <Calculator className="h-6 w-6" />
                 <span className="text-sm">새 프로젝트</span>
-              </Link>
-            </Button>
+              </Button>
+            </NewProjectModal>
             <Button className="h-auto p-4 flex-col gap-2" variant="outline" asChild>
               <Link href="/contacts">
                 <Users className="h-6 w-6" />

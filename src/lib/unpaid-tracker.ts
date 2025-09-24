@@ -62,7 +62,12 @@ export async function getUnpaidSummary(): Promise<UnpaidSummary> {
     .eq('paid', false)
 
   if (error) {
-    console.error('미지급 데이터 조회 실패:', error)
+    // 개발 환경에서는 로그만 출력하고 기본값 반환
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('미지급 데이터 조회 실패 (개발 환경):', error.message)
+    } else {
+      console.error('미지급 데이터 조회 실패:', error)
+    }
     return {
       totalUnpaidAmount: 0,
       totalUnpaidCount: 0,
@@ -166,7 +171,11 @@ export async function getMemberUnpaidItems(memberId: string): Promise<UnpaidItem
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('멤버 미지급 데이터 조회 실패:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('멤버 미지급 데이터 조회 실패 (개발 환경):', error.message)
+    } else {
+      console.error('멤버 미지급 데이터 조회 실패:', error)
+    }
     return []
   }
 

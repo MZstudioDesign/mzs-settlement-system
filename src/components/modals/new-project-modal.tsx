@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, lazy, Suspense, useEffect, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Calculator } from 'lucide-react'
 
@@ -13,27 +13,40 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { ProjectForm } from '@/components/forms/project-form'
-import { SettlementCalculator } from '@/components/calculator/settlement-calculator'
+import { ModalLoading, FormSkeleton } from '@/components/ui/loading'
 import { useCreateProject } from '@/hooks/useProjects'
 import { useAllSupportingData } from '@/hooks/useSupportingData'
 import type { CreateProjectForm } from '@/types/database'
+
+// Lazy load heavy components
+const LazyProjectForm = lazy(() => import('@/components/forms/project-form').then(module => ({ default: module.ProjectForm })))
+const LazySettlementCalculator = lazy(() => import('@/components/calculator/settlement-calculator').then(module => ({ default: module.SettlementCalculator })))
 
 interface NewProjectModalProps {
   children: React.ReactNode
 }
 
-export function NewProjectModal({ children }: NewProjectModalProps) {
+export const NewProjectModal = memo(function NewProjectModal({ children }: NewProjectModalProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showCalculator, setShowCalculator] = useState(false)
+  const [shouldLoadData, setShouldLoadData] = useState(false)
 
-  // Queries
+  // Only initialize queries when modal opens (deferred loading)
   const createProjectMutation = useCreateProject()
-  const supportingDataQuery = useAllSupportingData()
+  const supportingDataQuery = useAllSupportingData({
+    enabled: shouldLoadData // Only fetch when modal opens
+  })
 
-  // 폼 제출 핸들러
-  const handleSubmit = async (data: CreateProjectForm) => {
+  // Deferred data loading when modal opens
+  useEffect(() => {
+    if (open && !shouldLoadData) {
+      setShouldLoadData(true)
+    }
+  }, [open, shouldLoadData])
+
+  // Memoized handlers for better performance
+  const handleSubmit = useCallback(async (data: CreateProjectForm) => {
     try {
       const result = await createProjectMutation.mutateAsync(data)
       if (result.data) {
@@ -43,10 +56,19 @@ export function NewProjectModal({ children }: NewProjectModalProps) {
     } catch (error) {
       console.error('Failed to create project:', error)
     }
-  }
+  }, [createProjectMutation, router])
+
+  const handleModalClose = useCallback(() => {
+    setOpen(false)
+    setShowCalculator(false)
+  }, [])
+
+  const toggleCalculator = useCallback(() => {
+    setShowCalculator(prev => !prev)
+  }, [])
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -62,7 +84,7 @@ export function NewProjectModal({ children }: NewProjectModalProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowCalculator(!showCalculator)}
+              onClick={toggleCalculator}
             >
               <Calculator className="h-4 w-4 mr-2" />
               {showCalculator ? '계산기 숨기기' : '정산 계산기'}
@@ -71,34 +93,33 @@ export function NewProjectModal({ children }: NewProjectModalProps) {
         </DialogHeader>
 
         <div className={`grid gap-6 ${showCalculator ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-          {/* 프로젝트 폼 */}
+          {/* 프로젝트 폼 - Lazy Loaded */}
           <div className="space-y-4">
-            {supportingDataQuery.isLoading ? (
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                <div className="h-32 bg-gray-200 rounded"></div>
-              </div>
+            {!shouldLoadData ? (
+              <ModalLoading text="데이터 로딩 중..." />
             ) : (
-              <ProjectForm
-                supportingData={supportingDataQuery.data?.data}
-                onSubmit={handleSubmit}
-                isLoading={createProjectMutation.isPending}
-                submitLabel="프로젝트 생성"
-              />
+              <Suspense fallback={<FormSkeleton rows={6} />}>
+                <LazyProjectForm
+                  supportingData={supportingDataQuery.data?.data}
+                  onSubmit={handleSubmit}
+                  isLoading={createProjectMutation.isPending}
+                  submitLabel="프로젝트 생성"
+                />
+              </Suspense>
             )}
           </div>
 
-          {/* 정산 계산기 */}
+          {/* 정산 계산기 - Lazy Loaded */}
           {showCalculator && (
             <div className="border-l pl-6 space-y-4">
               <h3 className="text-lg font-semibold">정산 계산기</h3>
-              <SettlementCalculator />
+              <Suspense fallback={<ModalLoading text="계산기 로딩 중..." />}>
+                <LazySettlementCalculator />
+              </Suspense>
             </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
   )
-}
+})

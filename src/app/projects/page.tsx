@@ -52,6 +52,7 @@ import { useProjects, useProjectStats, useBatchUpdateProjects, useBatchDeletePro
 import { useAllSupportingData } from '@/hooks/useSupportingData'
 import { toKRW } from '@/lib/currency'
 import { calculateSettlement } from '@/lib/currency'
+import { CardSkeleton, TableSkeleton } from '@/components/ui/loading'
 import type { ProjectWithRelations, ProjectStatus } from '@/types/database'
 
 // 상태별 뱃지 스타일
@@ -68,6 +69,39 @@ const statusLabels = {
   COMPLETED: '완료됨',
   CANCELLED: '취소됨',
 }
+
+// Projects page skeleton component
+const ProjectsPageSkeleton = () => (
+  <div className="space-y-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div className="h-8 w-32 bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 w-48 bg-gray-200 rounded"></div>
+      </div>
+      <div className="flex gap-2">
+        <div className="h-9 w-20 bg-gray-200 rounded"></div>
+        <div className="h-9 w-20 bg-gray-200 rounded"></div>
+        <div className="h-9 w-24 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }, (_, i) => (
+        <CardSkeleton key={i} />
+      ))}
+    </div>
+
+    <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="h-10 w-full md:w-80 bg-gray-200 rounded"></div>
+      <div className="flex gap-2">
+        <div className="h-10 w-32 bg-gray-200 rounded"></div>
+        <div className="h-10 w-20 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+
+    <TableSkeleton rows={10} columns={9} />
+  </div>
+)
 
 export default function ProjectsPage() {
   const router = useRouter()
@@ -202,23 +236,11 @@ export default function ProjectsPage() {
   }, [])
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-          <div className="h-96 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    )
+    return <ProjectsPageSkeleton />
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

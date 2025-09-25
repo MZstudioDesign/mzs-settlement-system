@@ -80,12 +80,7 @@ CREATE TABLE IF NOT EXISTS public.project_files (
     file_size BIGINT,
     file_type VARCHAR(100),
     uploaded_by VARCHAR(100),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    -- Limit 5 files per project
-    CONSTRAINT max_files_per_project CHECK (
-        (SELECT COUNT(*) FROM public.project_files WHERE project_id = project_files.project_id) <= 5
-    )
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create contacts table
@@ -155,15 +150,7 @@ CREATE TABLE IF NOT EXISTS public.settlement_items (
     notes TEXT,
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    -- Ensure settlement items are immutable once settlement is locked
-    CONSTRAINT no_update_when_locked CHECK (
-        NOT EXISTS (
-            SELECT 1 FROM public.settlements s
-            WHERE s.id = settlement_id AND s.status = 'LOCKED'
-        ) OR created_at = updated_at
-    )
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create app_settings table

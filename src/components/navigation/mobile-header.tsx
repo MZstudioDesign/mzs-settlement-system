@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import {
   Menu,
   Bell,
@@ -124,6 +124,7 @@ export function MobileHeader({
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80 p-0">
+              <SheetTitle className="sr-only">메인 메뉴</SheetTitle>
               <div className="flex flex-col h-full">
                 {/* Header */}
                 <div className="p-6 border-b">

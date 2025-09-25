@@ -3,7 +3,15 @@
  * CRUD operations and data fetching utilities
  */
 
+// Import server-side Supabase client for API routes
+import { serverTables, serverViews, serverFunctions } from './supabase-server'
+// Keep client-side import as fallback
 import { tables, views, functions } from './supabase'
+
+// Use server tables in API routes (bypasses RLS)
+const apiTables = typeof window === 'undefined' ? serverTables : tables
+const apiViews = typeof window === 'undefined' ? serverViews : views
+const apiFunctions = typeof window === 'undefined' ? serverFunctions : functions
 import { mockApi, mockSupportingData } from './mock-data'
 import { settlementsApi } from './api/settlements'
 import type {
@@ -93,7 +101,7 @@ function paginatedResponse<T>(
   }
 }
 
-// Project API functions
+// Project API apiFunctions
 export const projectsApi = {
   /**
    * Get all projects with optional filtering and pagination
@@ -125,7 +133,7 @@ export const projectsApi = {
     } = params || {}
 
     try {
-      let query = tables
+      let query = apiTables
         .projects()
         .select(`
           *,
@@ -175,7 +183,7 @@ export const projectsApi = {
     }
 
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .projects()
         .select(`
           *,
@@ -205,7 +213,7 @@ export const projectsApi = {
 
     try {
       // Validate designer percentages
-      const { data: isValid } = await functions.validateDesignerPercentages(
+      const { data: isValid } = await apiFunctions.validateDesignerPercentages(
         projectData.designers
       )
 
@@ -217,7 +225,7 @@ export const projectsApi = {
 
       // Validate bonus percentages
       for (const designer of projectData.designers) {
-        const { data: bonusValid } = await functions.validateBonusPercentage(
+        const { data: bonusValid } = await apiFunctions.validateBonusPercentage(
           designer.bonus_pct
         )
         if (!bonusValid) {
@@ -227,7 +235,7 @@ export const projectsApi = {
         }
       }
 
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .projects()
         .insert({
           name: projectData.name,
@@ -264,7 +272,7 @@ export const projectsApi = {
     try {
       // Validate designer percentages if provided
       if (updates.designers) {
-        const { data: isValid } = await functions.validateDesignerPercentages(
+        const { data: isValid } = await apiFunctions.validateDesignerPercentages(
           updates.designers
         )
 
@@ -276,7 +284,7 @@ export const projectsApi = {
 
         // Validate bonus percentages
         for (const designer of updates.designers) {
-          const { data: bonusValid } = await functions.validateBonusPercentage(
+          const { data: bonusValid } = await apiFunctions.validateBonusPercentage(
             designer.bonus_pct
           )
           if (!bonusValid) {
@@ -287,7 +295,7 @@ export const projectsApi = {
         }
       }
 
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .projects()
         .update(updates)
         .eq('id', id)
@@ -313,9 +321,9 @@ export const projectsApi = {
 
     try {
       // First delete related project files
-      await tables.projectFiles().delete().eq('project_id', id)
+      await apiTables.projectFiles().delete().eq('project_id', id)
 
-      const { error } = await tables.projects().delete().eq('id', id)
+      const { error } = await apiTables.projects().delete().eq('id', id)
 
       if (error) return handleSupabaseError(error)
 
@@ -333,7 +341,7 @@ export const projectsApi = {
     status: string
   ): Promise<ApiResponse<Project[]>> {
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .projects()
         .update({ status })
         .in('id', ids)
@@ -353,9 +361,9 @@ export const projectsApi = {
   async batchDelete(ids: string[]): Promise<ApiResponse<void>> {
     try {
       // Delete related project files first
-      await tables.projectFiles().delete().in('project_id', ids)
+      await apiTables.projectFiles().delete().in('project_id', ids)
 
-      const { error } = await tables.projects().delete().in('id', ids)
+      const { error } = await apiTables.projects().delete().in('id', ids)
 
       if (error) return handleSupabaseError(error)
 
@@ -381,7 +389,7 @@ export const projectsApi = {
     }
 
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .projects()
         .select('status')
 
@@ -403,7 +411,7 @@ export const projectsApi = {
   },
 }
 
-// Supporting data API functions
+// Supporting data API apiFunctions
 export const supportingDataApi = {
   /**
    * Get all active members
@@ -415,7 +423,7 @@ export const supportingDataApi = {
     }
 
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .members()
         .select('*')
         .eq('active', true)
@@ -439,7 +447,7 @@ export const supportingDataApi = {
     }
 
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .channels()
         .select('*')
         .eq('active', true)
@@ -463,7 +471,7 @@ export const supportingDataApi = {
     }
 
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .categories()
         .select('*')
         .eq('active', true)
@@ -478,7 +486,7 @@ export const supportingDataApi = {
   },
 }
 
-// File upload API functions
+// File upload API apiFunctions
 export const fileApi = {
   /**
    * Upload project file
@@ -492,7 +500,7 @@ export const fileApi = {
       // For now, we'll simulate with a placeholder URL
       const fileUrl = `https://placeholder.url/${file.name}`
 
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .projectFiles()
         .insert({
           project_id: projectId,
@@ -518,7 +526,7 @@ export const fileApi = {
    */
   async deleteProjectFile(fileId: string): Promise<ApiResponse<void>> {
     try {
-      const { error } = await tables.projectFiles().delete().eq('id', fileId)
+      const { error } = await apiTables.projectFiles().delete().eq('id', fileId)
 
       if (error) return handleSupabaseError(error)
 
@@ -529,7 +537,7 @@ export const fileApi = {
   },
 }
 
-// Contact API functions
+// Contact API apiFunctions
 export const contactsApi = {
   /**
    * Get contacts with optional filtering and pagination
@@ -563,7 +571,7 @@ export const contactsApi = {
     } = params || {}
 
     try {
-      let query = tables
+      let query = apiTables
         .contacts()
         .select(`
           *,
@@ -622,7 +630,7 @@ export const contactsApi = {
         GUIDE: 2000,
       }
 
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .contacts()
         .insert({
           member_id: contactData.member_id,
@@ -648,7 +656,7 @@ export const contactsApi = {
    */
   async updateContact(id: string, updates: Partial<CreateContactForm>): Promise<ApiResponse<Contact>> {
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .contacts()
         .update(updates)
         .eq('id', id)
@@ -668,7 +676,7 @@ export const contactsApi = {
    */
   async deleteContact(id: string): Promise<ApiResponse<void>> {
     try {
-      const { error } = await tables.contacts().delete().eq('id', id)
+      const { error } = await apiTables.contacts().delete().eq('id', id)
 
       if (error) return handleSupabaseError(error)
 
@@ -689,7 +697,7 @@ export const contactsApi = {
     totalAmount: number
   }>> {
     try {
-      let query = tables.contacts().select('contact_type, amount')
+      let query = apiTables.contacts().select('contact_type, amount')
 
       if (memberId) {
         query = query.eq('member_id', memberId)
@@ -716,7 +724,7 @@ export const contactsApi = {
   },
 }
 
-// Feed Log API functions
+// Feed Log API apiFunctions
 export const feedLogsApi = {
   /**
    * Get feed logs with optional filtering and pagination
@@ -748,7 +756,7 @@ export const feedLogsApi = {
     } = params || {}
 
     try {
-      let query = tables
+      let query = apiTables
         .feedLogs()
         .select(`
           *,
@@ -802,7 +810,7 @@ export const feedLogsApi = {
         GTE3: 1000,
       }
 
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .feedLogs()
         .insert({
           member_id: feedData.member_id,
@@ -827,7 +835,7 @@ export const feedLogsApi = {
    */
   async updateFeedLog(id: string, updates: Partial<CreateFeedLogForm>): Promise<ApiResponse<FeedLog>> {
     try {
-      const { data, error } = await tables
+      const { data, error } = await apiTables
         .feedLogs()
         .update(updates)
         .eq('id', id)
@@ -847,7 +855,7 @@ export const feedLogsApi = {
    */
   async deleteFeedLog(id: string): Promise<ApiResponse<void>> {
     try {
-      const { error } = await tables.feedLogs().delete().eq('id', id)
+      const { error } = await apiTables.feedLogs().delete().eq('id', id)
 
       if (error) return handleSupabaseError(error)
 
@@ -867,7 +875,7 @@ export const feedLogsApi = {
     totalAmount: number
   }>> {
     try {
-      let query = tables.feedLogs().select('feed_type, amount')
+      let query = apiTables.feedLogs().select('feed_type, amount')
 
       if (memberId) {
         query = query.eq('member_id', memberId)

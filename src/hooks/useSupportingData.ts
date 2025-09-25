@@ -66,12 +66,13 @@ export function useCategories() {
   })
 }
 
-export function useAllSupportingData() {
+export function useAllSupportingData(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: supportingDataKeys.allData(),
     queryFn: fetchAllSupportingData,
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 2, // 최대 2번 재시도로 무한 루프 방지
+    enabled: options?.enabled ?? true, // Allow deferred loading
     retryDelay: 1000, // 1초 간격으로 재시도
     refetchOnWindowFocus: false, // 윈도우 포커스 시 리페치 방지
     refetchOnReconnect: false, // 재연결 시 리페치 방지

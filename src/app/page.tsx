@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useMemo, useCallback, memo } from 'react'
-import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -114,8 +113,7 @@ export default function Dashboard() {
   }, [data.kpi, calculateGrowth]);
 
   return (
-    <MainLayout title="대시보드" subtitle={`${currentTime.toLocaleDateString('ko-KR')} ${currentTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`}>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* 환영 섹션 */}
         <section className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -384,7 +382,6 @@ export default function Dashboard() {
             </Button>
           </div>
         </section>
-      </div>
-    </MainLayout>
+    </div>
   );
 }

@@ -1,68 +1,56 @@
-/**
- * API Route: /api/supporting-data
- * Handles GET operations for supporting data (members, channels, categories)
- */
+import 'server-only'
+import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
-import { NextRequest, NextResponse } from 'next/server'
-import { supportingDataApi } from '@/lib/api'
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const type = searchParams.get('type') ?? 'members'
+
   try {
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type')
-
-    let result
-
-    switch (type) {
-      case 'members':
-        result = await supportingDataApi.getMembers()
-        break
-      case 'channels':
-        result = await supportingDataApi.getChannels()
-        break
-      case 'categories':
-        result = await supportingDataApi.getCategories()
-        break
-      case 'all':
-        // Get all supporting data in parallel
-        const [membersResult, channelsResult, categoriesResult] = await Promise.all([
-          supportingDataApi.getMembers(),
-          supportingDataApi.getChannels(),
-          supportingDataApi.getCategories(),
-        ])
-
-        if (membersResult.error || channelsResult.error || categoriesResult.error) {
-          return NextResponse.json(
-            { error: 'Failed to fetch supporting data' },
-            { status: 400 }
-          )
-        }
-
-        return NextResponse.json({
-          data: {
-            members: membersResult.data,
-            channels: channelsResult.data,
-            categories: categoriesResult.data,
-          },
-        })
-
-      default:
-        return NextResponse.json(
-          { error: 'Type parameter is required (members, channels, categories, or all)' },
-          { status: 400 }
-        )
+    if (type === 'members') {
+      const { data, error } = await supabaseAdmin.from('members').select('*').eq('active', true).order('name')
+      if (error) throw error
+      return NextResponse.json(data)
     }
 
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+    if (type === 'channels') {
+      const { data, error } = await supabaseAdmin.from('channels').select('*').eq('active', true).order('name')
+      if (error) throw error
+      return NextResponse.json(data)
     }
 
-    return NextResponse.json(result)
-  } catch (error) {
-    console.error('GET /api/supporting-data error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    if (type === 'categories') {
+      const { data, error } = await supabaseAdmin.from('categories').select('*').eq('active', true).order('name')
+      if (error) throw error
+      return NextResponse.json(data)
+    }
+
+    if (type === 'all') {
+      const [membersResult, channelsResult, categoriesResult] = await Promise.all([
+        supabaseAdmin.from('members').select('*').eq('active', true).order('name'),
+        supabaseAdmin.from('channels').select('*').eq('active', true).order('name'),
+        supabaseAdmin.from('categories').select('*').eq('active', true).order('name')
+      ])
+
+      if (membersResult.error || channelsResult.error || categoriesResult.error) {
+        throw new Error('Failed to fetch supporting data')
+      }
+
+      return NextResponse.json({
+        data: {
+          members: membersResult.data,
+          channels: channelsResult.data,
+          categories: categoriesResult.data,
+        },
+      })
+    }
+
+    return NextResponse.json({ message: 'Unsupported type' }, { status: 400 })
+  } catch (err: any) {
+    console.error('[supporting-data] ', err)
+    return NextResponse.json({ message: err.message ?? 'Internal Server Error' }, { status: 500 })
   }
 }

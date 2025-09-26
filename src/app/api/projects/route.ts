@@ -3,36 +3,82 @@
  * Handles GET (list) and POST (create) operations for projects
  */
 
+import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
-import { projectsApi } from '@/lib/api'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { CreateProjectForm } from '@/types/database'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
 
-    const params = {
-      page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '10'),
-      search: searchParams.get('search') || undefined,
-      status: searchParams.get('status') || undefined,
-      channel_id: searchParams.get('channel_id') || undefined,
-      category_id: searchParams.get('category_id') || undefined,
-      sort_by: searchParams.get('sort_by') || 'created_at',
-      sort_order: (searchParams.get('sort_order') || 'desc') as 'asc' | 'desc',
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const search = searchParams.get('search')
+    const status = searchParams.get('status')
+    const channel_id = searchParams.get('channel_id')
+    const category_id = searchParams.get('category_id')
+    const sort_by = searchParams.get('sort_by') || 'created_at'
+    const sort_order = (searchParams.get('sort_order') || 'desc') as 'asc' | 'desc'
+
+    // Build query
+    let query = supabaseAdmin
+      .from('projects')
+      .select(`
+        *,
+        channels!projects_channel_id_fkey(id, name),
+        categories!projects_category_id_fkey(id, name)
+      `)
+
+    // Apply filters
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,client_name.ilike.%${search}%`)
     }
 
-    const result = await projectsApi.getProjects(params)
-
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+    if (status) {
+      query = query.eq('status', status)
     }
 
-    return NextResponse.json(result)
-  } catch (error) {
+    if (channel_id) {
+      query = query.eq('channel_id', channel_id)
+    }
+
+    if (category_id) {
+      query = query.eq('category_id', category_id)
+    }
+
+    // Apply sorting and pagination
+    query = query
+      .order(sort_by, { ascending: sort_order === 'asc' })
+      .range((page - 1) * limit, page * limit - 1)
+
+    const { data: projects, error: projectsError, count } = await query
+
+    if (projectsError) throw projectsError
+
+    // Get total count
+    const { count: totalCount, error: countError } = await supabaseAdmin
+      .from('projects')
+      .select('*', { count: 'exact', head: true })
+
+    if (countError) throw countError
+
+    return NextResponse.json({
+      data: projects || [],
+      pagination: {
+        page,
+        limit,
+        total: totalCount || 0,
+        totalPages: Math.ceil((totalCount || 0) / limit)
+      }
+    })
+  } catch (error: any) {
     console.error('GET /api/projects error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     )
   }
@@ -69,29 +115,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const projectData: CreateProjectForm = {
-      name: body.name,
+    const projectData = {
+      client_name: body.name,
       channel_id: body.channel_id,
-      category_id: body.category_id,
-      gross_amount: body.gross_amount,
+      category_id: body.category_id || null,
+      title: body.title || body.name,
+      qty: body.qty || 1,
+      list_price_net: body.gross_amount,
       discount_net: body.discount_net || 0,
+      deposit_gross_T: body.gross_amount,
+      net_B: body.gross_amount - (body.discount_net || 0),
+      settle_date: body.payment_date,
+      work_date: body.project_date,
+      invoice_requested: body.invoice_requested || false,
       designers: body.designers,
-      project_date: body.project_date,
-      payment_date: body.payment_date,
       notes: body.notes,
+      status: 'active'
     }
 
-    const result = await projectsApi.createProject(projectData)
+    const { data: project, error: projectError } = await supabaseAdmin
+      .from('projects')
+      .insert(projectData)
+      .select(`
+        *,
+        channels!projects_channel_id_fkey(id, name),
+        categories!projects_category_id_fkey(id, name)
+      `)
+      .single()
 
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
-    }
+    if (projectError) throw projectError
 
-    return NextResponse.json(result, { status: 201 })
-  } catch (error) {
+    return NextResponse.json({ data: project }, { status: 201 })
+  } catch (error: any) {
     console.error('POST /api/projects error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     )
   }

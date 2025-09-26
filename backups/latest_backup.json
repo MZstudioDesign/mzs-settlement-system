@@ -1,0 +1,40 @@
+{
+  "latestBackupFile": "excel_production_migration_fixed_2025_09_26_2025-09-26_14-21-06.json",
+  "backupPath": "D:\\잠깐만머물께\\웹사이트 디자인\\mzs_sheet\\mzs-settlement-system\\backups\\excel_production_migration_fixed_2025_09_26_2025-09-26_14-21-06.json",
+  "metadata": {
+    "name": "excel_production_migration_fixed_2025_09_26",
+    "timestamp": "2025-09-26T05:21:10.696Z",
+    "tables": [
+      "members",
+      "channels",
+      "categories",
+      "projects",
+      "contacts",
+      "feed_logs",
+      "team_tasks",
+      "mileage",
+      "funds_company",
+      "funds_personal",
+      "settlements",
+      "settlement_items",
+      "app_settings"
+    ],
+    "totalRecords": 84,
+    "checksums": {
+      "members": "72cf930c",
+      "channels": "117a578c",
+      "categories": "-566b6780",
+      "projects": "-594d83f4",
+      "contacts": "117a578c",
+      "feed_logs": "117a578c",
+      "team_tasks": "117a578c",
+      "mileage": "-14027c00",
+      "funds_company": "72cf930c",
+      "funds_personal": "72cf930c",
+      "settlements": "2b3b00",
+      "settlement_items": "efab38c",
+      "app_settings": "-13ccd580"
+    },
+    "version": "1.0"
+  }
+}

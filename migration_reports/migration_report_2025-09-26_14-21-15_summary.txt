@@ -1,0 +1,337 @@
+
+MZS Settlement System - Excel Data Migration Report
+==================================================
+
+Migration Status: ❌ FAILED
+Timestamp: 2025-09-26T05:21:03.841Z
+Phase: failed
+Duration: 10s
+
+Backup: excel_production_migration_fixed_2025_09_26
+Excel File: 정산 NEW 시트.xlsm
+
+Sheets Processed:
+
+
+Records Migrated:
+
+
+Validation Results:
+
+
+
+Errors Encountered:
+  - Error: Migration execution failed: Error: Command failed: npm run excel-etl -- --sheet=settlements --execute
+⚠️ Unknown category: 4-메뉴판 5-블로그스킨
+⚠️ Unknown channel: 1-크몽 2-계좌
+⚠️ Unknown category: 카테고리
+⚠️ Unknown channel: 플랫폼
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 4
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 2
+⚠️ Unknown category: 4
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 3
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 2
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 4
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 5
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 3
+⚠️ Unknown category: 5
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 4
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 5
+⚠️ Unknown category: 보드,배너
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 1
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 5
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 3
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 1
+⚠️ Unknown category: 상세페이지
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 2
+⚠️ Unknown category: 5
+⚠️ Unknown category: 3
+⚠️ Unknown category: 3
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 2
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 2
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 4
+⚠️ Unknown category: 카드뉴스 메뉴판
+⚠️ Unknown category: 3
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 2
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 배너
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 5
+⚠️ Unknown category: 5
+⚠️ Unknown category: 5
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 블로그스킨
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 카드뉴스
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 2
+⚠️ Unknown category: 3
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 메뉴판
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 2
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 4
+⚠️ Unknown category: 1
+⚠️ Unknown category: 5
+⚠️ Unknown category: 1
+⚠️ Unknown category: 1
+⚠️ Unknown category: 3
+⚠️ Unknown category: 2
+❌ Error importing to projects: Error: Failed to insert projects: Could not find the 'client_name' column of 'projects' in the schema cache
+    at importDataToTable (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:398:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async processSheet (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:450:5)
+    at async main (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:489:7)
+❌ Error processing sheet settlements: Error: Failed to insert projects: Could not find the 'client_name' column of 'projects' in the schema cache
+    at importDataToTable (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:398:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async processSheet (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:450:5)
+    at async main (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:489:7)
+💥 Excel ETL process failed: Error: Failed to insert projects: Could not find the 'client_name' column of 'projects' in the schema cache
+    at importDataToTable (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:398:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async processSheet (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:450:5)
+    at async main (D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\scripts\excel_etl_enhanced.ts:489:7)
+
+  - Rollback failed: Error: Command failed: npm run migration-backup -- --action=rollback --name=excel_production_migration_fixed_2025_09_26
+
+
+⚠️ Migration failed or encountered issues. Please review the errors above.
+
+Report Files:
+- Detailed: D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\migration_reports\migration_report_2025-09-26_14-21-15.json
+- Summary: D:\잠깐만머물께\웹사이트 디자인\mzs_sheet\mzs-settlement-system\migration_reports\migration_report_2025-09-26_14-21-15_summary.txt

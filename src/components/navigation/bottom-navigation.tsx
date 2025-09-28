@@ -63,6 +63,7 @@ export function BottomNavigation({ className }: BottomNavigationProps) {
       )}
       role="tablist"
       aria-label="메인 네비게이션"
+      data-testid="bottom-nav"
     >
       <div className="container mx-auto px-2 max-w-md">
         <div className="flex items-center justify-around h-16">

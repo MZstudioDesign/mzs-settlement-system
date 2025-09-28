@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -240,8 +239,7 @@ export default function TeamPage() {
   };
 
   return (
-    <MainLayout title="팀 관리" subtitle="팀원 및 업무 관리">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -674,7 +672,6 @@ export default function TeamPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-    </MainLayout>
+    </div>
   );
 }

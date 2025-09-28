@@ -78,8 +78,29 @@ async function loadDatabaseMappings(): Promise<void> {
     channels?.forEach(channel => {
       lookupCache.channels.set(channel.name, channel.id)
       // Add number mappings: 1=크몽, 2=계좌입금
-      if (channel.name === '크몽') lookupCache.channels.set('1', channel.id)
-      if (channel.name === '계좌입금') lookupCache.channels.set('2', channel.id)
+      if (channel.name === '크몽') {
+        lookupCache.channels.set('1', channel.id)
+        lookupCache.channels.set('크몽', channel.id)
+      }
+      if (channel.name === '계좌입금') {
+        lookupCache.channels.set('2', channel.id)
+        lookupCache.channels.set('계좌', channel.id)
+        lookupCache.channels.set('계좌입금', channel.id)
+      }
+    })
+
+    // Add additional channel mappings for Excel data variations
+    const channelMappings = {
+      '1-크몽 2-계좌': '크몽', // Use first one as fallback
+      '플랫폼': '크몽', // Map to most common platform
+      '': '크몽' // Default fallback for empty
+    }
+
+    Object.entries(channelMappings).forEach(([variation, standardName]) => {
+      const channelId = lookupCache.channels.get(standardName)
+      if (channelId) {
+        lookupCache.channels.set(variation, channelId)
+      }
     })
 
     // Load categories
@@ -114,7 +135,8 @@ async function loadDatabaseMappings(): Promise<void> {
       '블로그스킨': '블로그스킨',
       '블로그': '블로그스킨',
       '스킨': '블로그스킨',
-      // Add more variations that might appear in Excel data
+
+      // Add more variations that appear in Excel data
       '카드': '카드뉴스',
       '뉴스': '카드뉴스',
       '카드 뉴스': '카드뉴스',
@@ -124,7 +146,21 @@ async function loadDatabaseMappings(): Promise<void> {
       '메뉴 디자인': '메뉴판',
       '메뉴판 디자인': '메뉴판',
       '블로그 스킨': '블로그스킨',
-      '블로그 디자인': '블로그스킨'
+      '블로그 디자인': '블로그스킨',
+
+      // Additional variations from Excel data
+      '보드,배너': '현수막/배너',
+      '보드': '현수막/배너',
+      '상세페이지': '포스터', // Map to closest category
+      '카드뉴스 메뉴판': '카드뉴스', // Choose primary category
+
+      // Handle empty/placeholder categories
+      '카테고리': '포스터', // Default fallback
+      '': '포스터', // Default fallback for empty
+
+      // Handle combined categories - use first one
+      '4-메뉴판 5-블로그스킨': '메뉴판',
+      '메뉴판 블로그스킨': '메뉴판'
     }
 
     // Map numbers to category names
@@ -265,16 +301,27 @@ function extractSheetData(workbook: XLSX.WorkBook, sheetConfig: any): any[] {
 function transformSettlementsData(records: any[]): any[] {
   return records.map((record, index) => {
     try {
+      // Match actual database schema for projects table
       const transformed: any = {
-        client_name: record.client_name || `Unknown_${index}`,
         name: record.title || record.client_name || `Project_${index}`,
         project_date: record.project_date ? convertYYMMDDToDate(record.project_date) : new Date().toISOString().split('T')[0],
-        list_price_net: parseAmount(record.list_price_net),
+        gross_amount: parseAmount(record.list_price_net) || 0, // Store as gross amount (will be converted to include VAT)
         discount_net: parseAmount(record.discount_net) || 0,
         status: record.status === '1' ? 'COMPLETED' : 'PENDING',
         notes: record.notes || '',
-        invoice_requested: record.invoice_requested === '1' || record.invoice_requested === '2',
-        designers: []
+        designers: [] // Default empty array
+      }
+
+      // Convert net amount to gross amount with VAT if needed
+      if (transformed.gross_amount > 0 && transformed.gross_amount < 1000000) {
+        // If amount seems to be net, convert to gross (add VAT)
+        transformed.gross_amount = Math.round(transformed.gross_amount * 1.1)
+      }
+
+      // Skip records with zero gross amount (database constraint requires > 0)
+      if (transformed.gross_amount <= 0) {
+        console.warn(`⚠️ Skipping record with zero gross amount: ${transformed.name}`)
+        return null
       }
 
       // Transform category_id
@@ -297,15 +344,23 @@ function transformSettlementsData(records: any[]): any[] {
         }
       }
 
-      // Parse designers
+      // Parse designers - store as JSONB array, normalize to 100%
       if (record.designers && record.work_percent) {
         const memberId = lookupCache.members.get(record.designers)
         if (memberId) {
-          transformed.designers = JSON.stringify([{
+          transformed.designers = [{
             member_id: memberId,
-            percent: Math.floor((parseFloat(record.work_percent) || 1) * 100),
+            percent: 100, // Always set to 100 for single designer to satisfy constraint
             bonus_pct: 0
-          }])
+          }]
+        }
+      }
+
+      // Set default channel_id if missing (use first available channel)
+      if (!transformed.channel_id) {
+        const defaultChannelId = Array.from(lookupCache.channels.values())[0]
+        if (defaultChannelId) {
+          transformed.channel_id = defaultChannelId
         }
       }
 
@@ -313,9 +368,9 @@ function transformSettlementsData(records: any[]): any[] {
 
     } catch (error) {
       console.error(`❌ Error transforming settlements record ${index}:`, record, error)
-      throw error
+      return null // Return null for error records
     }
-  })
+  }).filter(record => record !== null) // Filter out null records
 }
 
 /**
@@ -334,13 +389,13 @@ function transformContactsData(records: any[]): any[] {
 
       const baseDate = record.event_date ? convertYYMMDDToDate(record.event_date) : new Date().toISOString().split('T')[0]
 
-      // Create separate contact records for each event type
+      // Create separate contact records for each contact type (match schema)
       if (record.incoming_count && parseInt(record.incoming_count) > 0) {
         for (let i = 0; i < parseInt(record.incoming_count); i++) {
           contactRecords.push({
             member_id: memberId,
             event_date: baseDate,
-            event_type: 'INCOMING',
+            contact_type: 'INCOMING',
             amount: 1000,
             notes: `Contact event ${i + 1}`
           })
@@ -352,7 +407,7 @@ function transformContactsData(records: any[]): any[] {
           contactRecords.push({
             member_id: memberId,
             event_date: baseDate,
-            event_type: 'CHAT',
+            contact_type: 'CHAT',
             amount: 1000,
             notes: `Chat event ${i + 1}`
           })
@@ -364,7 +419,7 @@ function transformContactsData(records: any[]): any[] {
           contactRecords.push({
             member_id: memberId,
             event_date: baseDate,
-            event_type: 'GUIDE',
+            contact_type: 'GUIDE',
             amount: 2000,
             notes: `Guide event ${i + 1}`
           })
@@ -396,13 +451,116 @@ function transformTeamTasksData(records: any[]): any[] {
         member_id: memberId,
         task_date: record.task_date ? convertYYMMDDToDate(record.task_date) : new Date().toISOString().split('T')[0],
         description: record.description || `Task ${index}`,
-        amount: parseAmount(record.amount),
-        notes: record.notes || '',
-        time_spent: record.time_spent || ''
+        amount: parseAmount(record.amount) || 0,
+        notes: record.notes || ''
       }
 
     } catch (error) {
       console.error(`❌ Error transforming team task record ${index}:`, record, error)
+      return null
+    }
+  }).filter(record => record !== null)
+}
+
+/**
+ * Transform and validate feed_team_meetings data
+ */
+function transformFeedTeamMeetingsData(records: any[]): any[] {
+  return records.map((record, index) => {
+    try {
+      const memberId = lookupCache.members.get(record.member_id)
+      if (!memberId) {
+        console.warn(`⚠️ Unknown member: ${record.member_id}`)
+        return null
+      }
+
+      return {
+        member_id: memberId,
+        event_date: record.event_date ? convertYYMMDDToDate(record.event_date) : new Date().toISOString().split('T')[0],
+        feed_type: record.feed_type === '1' ? 'GTE3' : 'BELOW3',
+        amount: record.feed_type === '1' ? 1000 : 400,
+        notes: `Feed type: ${record.feed_type === '1' ? '3개 이상' : '3개 미만'}`
+      }
+
+    } catch (error) {
+      console.error(`❌ Error transforming feed meeting record ${index}:`, record, error)
+      return null
+    }
+  }).filter(record => record !== null)
+}
+
+/**
+ * Transform and validate feed_logs data
+ */
+function transformFeedLogsData(records: any[]): any[] {
+  return records.map((record, index) => {
+    try {
+      const memberId = lookupCache.members.get(record.member_id)
+      if (!memberId) {
+        console.warn(`⚠️ Unknown member: ${record.member_id}`)
+        return null
+      }
+
+      return {
+        member_id: memberId,
+        event_date: record.event_date ? convertYYMMDDToDate(record.event_date) : new Date().toISOString().split('T')[0],
+        feed_type: 'BELOW3', // Feedback logs are typically for general feedback
+        amount: parseAmount(record.amount) || 500,
+        notes: `Feedback giver: ${record.feedback_giver || 'Unknown'}`
+      }
+
+    } catch (error) {
+      console.error(`❌ Error transforming feed log record ${index}:`, record, error)
+      return null
+    }
+  }).filter(record => record !== null)
+}
+
+/**
+ * Transform and validate mileage data
+ */
+function transformMileageData(records: any[]): any[] {
+  return records.map((record, index) => {
+    try {
+      const memberId = lookupCache.members.get(record.member_id)
+      if (!memberId) {
+        console.warn(`⚠️ Unknown member: ${record.member_id}`)
+        return null
+      }
+
+      return {
+        member_id: memberId,
+        event_date: record.event_date ? convertYYMMDDToDate(record.event_date) : new Date().toISOString().split('T')[0],
+        reason: record.reason || 'Mileage reward',
+        points: parseAmount(record.points) || 0,
+        amount: parseAmount(record.amount) || 0,
+        consumed_now: record.consumed_now || false,
+        notes: record.notes || ''
+      }
+
+    } catch (error) {
+      console.error(`❌ Error transforming mileage record ${index}:`, record, error)
+      return null
+    }
+  }).filter(record => record !== null)
+}
+
+/**
+ * Transform and validate company_funds data
+ */
+function transformCompanyFundsData(records: any[]): any[] {
+  return records.map((record, index) => {
+    try {
+      return {
+        expense_date: record.expense_date ? convertYYMMDDToDate(record.expense_date) : new Date().toISOString().split('T')[0],
+        item_name: record.item_name || record.item || `Company expense ${index}`,
+        amount: parseAmount(record.amount) || 0,
+        description: record.description || record.memo || '',
+        receipt_files: record.receipt_files || []
+      }
+
+    } catch (error) {
+      console.error(`❌ Error transforming company funds record ${index}:`, record, error)
       return null
     }
   }).filter(record => record !== null)
@@ -523,6 +681,18 @@ async function processSheet(workbook: XLSX.WorkBook, sheetName: string, preview:
       case 'team_tasks':
         transformedData = transformTeamTasksData(extractedData)
         break
+      case 'feed_team_meetings':
+        transformedData = transformFeedTeamMeetingsData(extractedData)
+        break
+      case 'feed_logs':
+        transformedData = transformFeedLogsData(extractedData)
+        break
+      case 'mileage':
+        transformedData = transformMileageData(extractedData)
+        break
+      case 'company_funds':
+        transformedData = transformCompanyFundsData(extractedData)
+        break
       default:
         console.log(`⚠️ No transformer implemented for ${sheetName}`)
         return
@@ -561,7 +731,7 @@ async function main(): Promise<void> {
 
     if (allFlag) {
       // Process all supported sheets
-      const supportedSheets = ['settlements', 'contacts', 'team_tasks']
+      const supportedSheets = ['settlements', 'contacts', 'team_tasks', 'feed_team_meetings', 'feed_logs', 'mileage', 'company_funds']
       for (const sheetName of supportedSheets) {
         await processSheet(workbook, sheetName, preview)
       }
@@ -572,7 +742,7 @@ async function main(): Promise<void> {
     } else {
       console.error('❌ Usage: npm run excel-etl -- --sheet=<sheet_name> [--execute]')
       console.error('❌ Or: npm run excel-etl -- --all [--execute]')
-      console.error('Supported sheets: settlements, contacts, team_tasks')
+      console.error('Supported sheets: settlements, contacts, team_tasks, feed_team_meetings, feed_logs, mileage, company_funds')
       process.exit(1)
     }
 

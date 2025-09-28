@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -229,8 +228,7 @@ export default function SettingsPage() {
   const formatRate = (rate) => (rate * 100).toFixed(1) + '%';
 
   return (
-    <MainLayout title="설정" subtitle="시스템 설정 및 관리">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -999,7 +997,6 @@ export default function SettingsPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
-    </MainLayout>
+    </div>
   );
 }

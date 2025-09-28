@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, useCallback, memo } from 'react'
-import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -251,8 +250,7 @@ export default function SettlementsPage() {
   };
 
   return (
-    <MainLayout title="정산 관리" subtitle="월별 정산 생성 및 관리">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -539,7 +537,6 @@ export default function SettlementsPage() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
-    </MainLayout>
+    </div>
   );
 }

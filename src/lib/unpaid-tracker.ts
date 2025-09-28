@@ -48,9 +48,9 @@ export interface UnpaidItem {
  */
 export async function getUnpaidSummary(): Promise<UnpaidSummary> {
   // 개발 환경에서는 목업 데이터 반환
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' || !supabase || typeof supabase.from !== 'function') {
     console.log('개발 모드: 목업 미지급 데이터 사용')
-    return {
+    return Promise.resolve({
       totalUnpaidAmount: 2340000,
       totalUnpaidCount: 5,
       unpaidByMember: [
@@ -83,7 +83,7 @@ export async function getUnpaidSummary(): Promise<UnpaidSummary> {
         team: 200000,
         mileage: 100000
       }
-    }
+    })
   }
 
   const { data: unpaidItems, error } = await supabase

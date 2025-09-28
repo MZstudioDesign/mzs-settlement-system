@@ -11,10 +11,11 @@ import { ContactFeedModal } from "@/components/modals/contact-feed-modal";
 import { cn, mobile, a11y } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
-import { LazyPerformanceMonitor } from "@/components/common/lazy-components";
+import { LazyPerformanceMonitor, LazyErrorMonitor } from "@/components/common/lazy-components";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Menu, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { QuickLoggerFAB } from "@/components/fab/quick-logger-fab";
 
 interface ResponsiveLayoutProps {
   children: React.ReactNode;
@@ -266,7 +267,7 @@ function ResponsiveLayoutInner({
             id="main-content"
             className={cn(
               "flex-1 overflow-auto",
-              "container mx-auto px-4 py-6 lg:px-6",
+              "container mx-auto max-w-screen-xl px-4 py-6 md:px-6",
               showBottomNav && "pb-24 lg:pb-6", // 하단 네비게이션을 위한 여백 (모바일에서만)
               className
             )}
@@ -285,9 +286,9 @@ function ResponsiveLayoutInner({
         </div>
       )}
 
-      {/* Quick Logger FAB - 임시 비활성화 */}
-      {false && showFAB && (
-        <div>FAB will be enabled later</div>
+      {/* Quick Logger FAB */}
+      {showFAB && (
+        <QuickLoggerFAB />
       )}
 
       {/* Quick Input Overlay */}
@@ -343,8 +344,9 @@ function ResponsiveLayoutInner({
         </ul>
       </div>
 
-      {/* 개발 환경 성능 모니터 */}
-      <LazyPerformanceMonitor />
+      {/* 개발 환경 모니터링 */}
+      {/* <LazyPerformanceMonitor /> */}
+      <LazyErrorMonitor />
     </div>
   );
 }

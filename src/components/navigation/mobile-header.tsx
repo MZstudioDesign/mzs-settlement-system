@@ -117,13 +117,13 @@ export function MobileHeader({
               <Button
                 variant="ghost"
                 size="icon"
-                className="focus-brand"
+                className="focus-brand relative z-50 min-h-[44px] min-w-[44px]"
                 aria-label="메뉴 열기"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 p-0">
+            <SheetContent side="right" className="w-80 p-0 sm:w-96">
               <SheetTitle className="sr-only">메인 메뉴</SheetTitle>
               <div className="flex flex-col h-full">
                 {/* Header */}
@@ -148,12 +148,14 @@ export function MobileHeader({
                         key={item.href}
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className="block"
+                        className="block group"
                       >
-                        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-accent/50 transition-colors focus-brand">
-                          <Icon className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-accent/50 active:bg-accent transition-all duration-200 focus-brand group-active:scale-[0.98]">
+                          <div className="p-2 rounded-lg bg-accent/30 group-hover:bg-primary/10 transition-colors">
+                            <Icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm">{item.label}</p>
+                            <p className="font-semibold text-sm group-hover:text-primary transition-colors">{item.label}</p>
                             <p className="text-xs text-muted-foreground truncate">
                               {item.description}
                             </p>

@@ -345,4 +345,19 @@
   .border-brand {
     border-color: var(--brand-primary);
   }
+
+  /* 모바일 하단 네비게이션 오버레이 문제 해결 */
+  .tsqd-parent-container,
+  .tsqd-parent-container svg,
+  .tsqd-parent-container [data-decor],
+  svg[data-decor] {
+    pointer-events: none !important; /* 배경/데코가 클릭 가로채지 않도록 */
+  }
+
+  /* 하단 네비가 항상 위에 있도록 */
+  [data-testid="bottom-nav"] {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+  }
 }

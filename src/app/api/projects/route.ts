@@ -88,29 +88,57 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Validate required fields
+    // Validate required fields with improved logging
     const requiredFields = ['name', 'channel_id', 'gross_amount', 'designers']
     for (const field of requiredFields) {
       if (!body[field]) {
+        console.error('[projects] 400 Error - Missing field:', {
+          missingField: field,
+          receivedBody: Object.keys(body),
+          timestamp: new Date().toISOString()
+        })
         return NextResponse.json(
-          { error: `Missing required field: ${field}` },
+          {
+            error: `Missing required field: ${field}`,
+            requiredFields,
+            receivedFields: Object.keys(body)
+          },
           { status: 400 }
         )
       }
     }
 
-    // Validate designers array
+    // Validate designers array with improved logging
     if (!Array.isArray(body.designers) || body.designers.length === 0) {
+      console.error('[projects] 400 Error - Invalid designers:', {
+        designersValue: body.designers,
+        designersType: typeof body.designers,
+        isArray: Array.isArray(body.designers),
+        timestamp: new Date().toISOString()
+      })
       return NextResponse.json(
-        { error: 'At least one designer must be assigned' },
+        {
+          error: 'At least one designer must be assigned',
+          received: body.designers,
+          expectedType: 'array with at least one element'
+        },
         { status: 400 }
       )
     }
 
-    // Validate gross_amount is positive
+    // Validate gross_amount is positive with improved logging
     if (body.gross_amount <= 0) {
+      console.error('[projects] 400 Error - Invalid gross_amount:', {
+        grossAmount: body.gross_amount,
+        grossAmountType: typeof body.gross_amount,
+        timestamp: new Date().toISOString()
+      })
       return NextResponse.json(
-        { error: 'Gross amount must be positive' },
+        {
+          error: 'Gross amount must be positive',
+          received: body.gross_amount,
+          expectedType: 'positive number'
+        },
         { status: 400 }
       )
     }

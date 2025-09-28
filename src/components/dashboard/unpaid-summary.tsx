@@ -243,6 +243,7 @@ export function UnpaidSummaryCard({
                 variant="outline"
                 className="w-full"
                 onClick={onViewDetails}
+                data-testid="btn-unpaid-detail"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 상세 미지급 내역 보기

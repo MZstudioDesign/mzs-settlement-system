@@ -53,6 +53,15 @@ export const LazyPerformanceMonitor = dynamic(
   }
 )
 
+// 에러 모니터링 (개발용)
+export const LazyErrorMonitor = dynamic(
+  () => import('@/components/dev/error-monitor'),
+  {
+    loading: () => null,
+    ssr: false
+  }
+)
+
 // 높은 우선순위로 프리로드할 컴포넌트들
 export const preloadCriticalComponents = () => {
   // 정산 테이블은 자주 사용되므로 프리로드

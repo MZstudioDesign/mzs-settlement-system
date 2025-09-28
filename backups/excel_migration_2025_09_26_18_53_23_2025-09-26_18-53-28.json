@@ -1,0 +1,1430 @@
+{
+  "metadata": {
+    "name": "excel_migration_2025_09_26_18_53_23",
+    "timestamp": "2025-09-26T09:53:32.257Z",
+    "tables": [
+      "members",
+      "channels",
+      "categories",
+      "projects",
+      "contacts",
+      "feed_logs",
+      "team_tasks",
+      "mileage",
+      "funds_company",
+      "funds_personal",
+      "settlements",
+      "settlement_items",
+      "app_settings"
+    ],
+    "totalRecords": 84,
+    "checksums": {
+      "members": "72cf930c",
+      "channels": "117a578c",
+      "categories": "-566b6780",
+      "projects": "-594d83f4",
+      "contacts": "117a578c",
+      "feed_logs": "117a578c",
+      "team_tasks": "117a578c",
+      "mileage": "-14027c00",
+      "funds_company": "72cf930c",
+      "funds_personal": "72cf930c",
+      "settlements": "2b3b00",
+      "settlement_items": "efab38c",
+      "app_settings": "-13ccd580"
+    },
+    "version": "1.0"
+  },
+  "tables": [
+    {
+      "table": "members",
+      "schema": {
+        "id": "string",
+        "name": "string",
+        "code": "string",
+        "active": "boolean",
+        "email": "string",
+        "phone": "object",
+        "join_date": "string",
+        "notes": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "name": "오유택",
+          "code": "OUT",
+          "active": true,
+          "email": "ohyutaek@mzstudio.co.kr",
+          "phone": null,
+          "join_date": "2020-01-01",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "name": "이예천",
+          "code": "LYC",
+          "active": true,
+          "email": "leeyecheon@mzstudio.co.kr",
+          "phone": null,
+          "join_date": "2021-03-15",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440003",
+          "name": "김연지",
+          "code": "KYJ",
+          "active": true,
+          "email": "kimyeonji@mzstudio.co.kr",
+          "phone": null,
+          "join_date": "2021-06-01",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440004",
+          "name": "김하늘",
+          "code": "KHN",
+          "active": true,
+          "email": "kimhaneul@mzstudio.co.kr",
+          "phone": null,
+          "join_date": "2022-01-15",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440005",
+          "name": "이정수",
+          "code": "LJS",
+          "active": true,
+          "email": "leejeongsu@mzstudio.co.kr",
+          "phone": null,
+          "join_date": "2022-09-01",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440006",
+          "name": "박지윤",
+          "code": "PJY",
+          "active": true,
+          "email": "parkjiyoon@mzstudio.co.kr",
+          "phone": null,
+          "join_date": "2023-02-01",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 6,
+      "checksum": "72cf930c"
+    },
+    {
+      "table": "channels",
+      "schema": {
+        "id": "string",
+        "name": "string",
+        "fee_rate": "number",
+        "active": "boolean",
+        "description": "string",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "660e8400-e29b-41d4-a716-446655440001",
+          "name": "크몽",
+          "fee_rate": 0.21,
+          "active": true,
+          "description": "크몽 플랫폼 - 21% 수수료",
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "660e8400-e29b-41d4-a716-446655440002",
+          "name": "계좌입금",
+          "fee_rate": 0,
+          "active": true,
+          "description": "직접 계좌 입금 - 수수료 없음",
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "660e8400-e29b-41d4-a716-446655440003",
+          "name": "카드결제",
+          "fee_rate": 0.035,
+          "active": true,
+          "description": "카드 결제 - 3.5% 수수료",
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "660e8400-e29b-41d4-a716-446655440004",
+          "name": "기타플랫폼",
+          "fee_rate": 0.15,
+          "active": true,
+          "description": "기타 플랫폼 - 15% 평균 수수료",
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 4,
+      "checksum": "117a578c"
+    },
+    {
+      "table": "categories",
+      "schema": {
+        "id": "string",
+        "name": "string",
+        "description": "string",
+        "active": "boolean",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440001",
+          "name": "PPT 디자인",
+          "description": "PowerPoint 프레젠테이션 디자인",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440002",
+          "name": "브랜드 디자인",
+          "description": "로고, CI/BI, 브랜딩 작업",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440003",
+          "name": "편집 디자인",
+          "description": "포스터, 브로슈어, 카탈로그 등",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440004",
+          "name": "웹 디자인",
+          "description": "웹사이트, 앱 UI/UX 디자인",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440005",
+          "name": "패키지 디자인",
+          "description": "제품 패키지, 라벨 디자인",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440006",
+          "name": "영상 편집",
+          "description": "동영상 편집, 모션 그래픽",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "770e8400-e29b-41d4-a716-446655440007",
+          "name": "기타",
+          "description": "기타 디자인 작업",
+          "active": true,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 7,
+      "checksum": "-566b6780"
+    },
+    {
+      "table": "projects",
+      "schema": {
+        "id": "string",
+        "name": "string",
+        "channel_id": "string",
+        "category_id": "string",
+        "gross_amount": "number",
+        "discount_net": "number",
+        "designers": "object",
+        "status": "string",
+        "project_date": "string",
+        "payment_date": "object",
+        "notes": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "990e8400-e29b-41d4-a716-446655440001",
+          "name": "샘플 PPT 디자인 프로젝트",
+          "channel_id": "660e8400-e29b-41d4-a716-446655440001",
+          "category_id": "770e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 1100000,
+          "discount_net": 0,
+          "designers": [
+            {
+              "percent": 60,
+              "bonus_pct": 10,
+              "member_id": "550e8400-e29b-41d4-a716-446655440001"
+            },
+            {
+              "percent": 40,
+              "bonus_pct": 5,
+              "member_id": "550e8400-e29b-41d4-a716-446655440002"
+            }
+          ],
+          "status": "COMPLETED",
+          "project_date": "2024-09-01",
+          "payment_date": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "990e8400-e29b-41d4-a716-446655440002",
+          "name": "브랜드 로고 디자인",
+          "channel_id": "660e8400-e29b-41d4-a716-446655440002",
+          "category_id": "770e8400-e29b-41d4-a716-446655440002",
+          "gross_amount": 550000,
+          "discount_net": 50000,
+          "designers": [
+            {
+              "percent": 100,
+              "bonus_pct": 15,
+              "member_id": "550e8400-e29b-41d4-a716-446655440003"
+            }
+          ],
+          "status": "COMPLETED",
+          "project_date": "2024-09-15",
+          "payment_date": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 2,
+      "checksum": "-594d83f4"
+    },
+    {
+      "table": "contacts",
+      "schema": {
+        "id": "string",
+        "member_id": "string",
+        "project_id": "string",
+        "contact_type": "string",
+        "amount": "number",
+        "event_date": "string",
+        "notes": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "aa0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "project_id": "990e8400-e29b-41d4-a716-446655440001",
+          "contact_type": "INCOMING",
+          "amount": 1000,
+          "event_date": "2024-09-01",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "aa0e8400-e29b-41d4-a716-446655440002",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "project_id": "990e8400-e29b-41d4-a716-446655440001",
+          "contact_type": "CHAT",
+          "amount": 1000,
+          "event_date": "2024-09-02",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "aa0e8400-e29b-41d4-a716-446655440003",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "project_id": "990e8400-e29b-41d4-a716-446655440001",
+          "contact_type": "GUIDE",
+          "amount": 2000,
+          "event_date": "2024-09-03",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "aa0e8400-e29b-41d4-a716-446655440004",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "project_id": null,
+          "contact_type": "INCOMING",
+          "amount": 1000,
+          "event_date": "2024-09-15",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 4,
+      "checksum": "117a578c"
+    },
+    {
+      "table": "feed_logs",
+      "schema": {
+        "id": "string",
+        "member_id": "string",
+        "feed_type": "string",
+        "amount": "number",
+        "event_date": "string",
+        "notes": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "feed_type": "GTE3",
+          "amount": 1000,
+          "event_date": "2024-09-01",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440002",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "feed_type": "BELOW3",
+          "amount": 400,
+          "event_date": "2024-09-05",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440003",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "feed_type": "GTE3",
+          "amount": 1000,
+          "event_date": "2024-09-10",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440004",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "feed_type": "BELOW3",
+          "amount": 400,
+          "event_date": "2024-09-12",
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 4,
+      "checksum": "117a578c"
+    },
+    {
+      "table": "team_tasks",
+      "schema": {
+        "id": "string",
+        "member_id": "string",
+        "project_id": "string",
+        "task_date": "string",
+        "description": "string",
+        "amount": "number",
+        "notes": "string",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "ee0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "project_id": "990e8400-e29b-41d4-a716-446655440001",
+          "task_date": "2024-09-01",
+          "description": "프로젝트 기획 회의 참석",
+          "amount": 50000,
+          "notes": "2시간 회의 참석",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ee0e8400-e29b-41d4-a716-446655440002",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "project_id": "990e8400-e29b-41d4-a716-446655440001",
+          "task_date": "2024-09-02",
+          "description": "클라이언트 미팅 참석",
+          "amount": 30000,
+          "notes": "1시간 클라이언트 미팅",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ee0e8400-e29b-41d4-a716-446655440003",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "project_id": null,
+          "task_date": "2024-09-05",
+          "description": "사무실 정리 및 청소",
+          "amount": 20000,
+          "notes": "사무실 환경 개선",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ee0e8400-e29b-41d4-a716-446655440004",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "project_id": "990e8400-e29b-41d4-a716-446655440002",
+          "task_date": "2024-09-10",
+          "description": "디자인 검토 및 피드백",
+          "amount": 25000,
+          "notes": "디자인 품질 개선",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        }
+      ],
+      "recordCount": 4,
+      "checksum": "117a578c"
+    },
+    {
+      "table": "mileage",
+      "schema": {
+        "id": "string",
+        "member_id": "string",
+        "event_date": "string",
+        "reason": "string",
+        "points": "number",
+        "amount": "number",
+        "consumed_now": "boolean",
+        "notes": "string",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "ff0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "event_date": "2024-09-01",
+          "reason": "프로젝트 완료 보너스",
+          "points": 100,
+          "amount": 10000,
+          "consumed_now": false,
+          "notes": "프로젝트 성공적 완료",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ff0e8400-e29b-41d4-a716-446655440002",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "event_date": "2024-09-05",
+          "reason": "피드백 우수상",
+          "points": 50,
+          "amount": 5000,
+          "consumed_now": true,
+          "notes": "즉시 현금화 요청",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ff0e8400-e29b-41d4-a716-446655440003",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "event_date": "2024-09-10",
+          "reason": "월간 출석률 우수",
+          "points": 80,
+          "amount": 8000,
+          "consumed_now": false,
+          "notes": "9월 출석률 100%",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ff0e8400-e29b-41d4-a716-446655440004",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "event_date": "2024-09-15",
+          "reason": "신규 클라이언트 유치",
+          "points": 150,
+          "amount": 15000,
+          "consumed_now": false,
+          "notes": "신규 클라이언트 3명 유치",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "ff0e8400-e29b-41d4-a716-446655440005",
+          "member_id": "550e8400-e29b-41d4-a716-446655440005",
+          "event_date": "2024-09-20",
+          "reason": "교육 이수 완료",
+          "points": 30,
+          "amount": 3000,
+          "consumed_now": true,
+          "notes": "디자인 교육 과정 이수",
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        }
+      ],
+      "recordCount": 5,
+      "checksum": "-14027c00"
+    },
+    {
+      "table": "funds_company",
+      "schema": {
+        "id": "string",
+        "expense_date": "string",
+        "item_name": "string",
+        "amount": "number",
+        "description": "string",
+        "receipt_files": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440001",
+          "expense_date": "2024-09-01",
+          "item_name": "사무실 임대료",
+          "amount": 2000000,
+          "description": "2024년 9월 사무실 임대료",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440002",
+          "expense_date": "2024-09-01",
+          "item_name": "인터넷 및 통신비",
+          "amount": 150000,
+          "description": "9월 인터넷, 전화 요금",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440003",
+          "expense_date": "2024-09-05",
+          "item_name": "전기세",
+          "amount": 300000,
+          "description": "8월 전기 사용료",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440004",
+          "expense_date": "2024-09-10",
+          "item_name": "사무용품 구입",
+          "amount": 250000,
+          "description": "프린터 토너, 용지 등",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440005",
+          "expense_date": "2024-09-15",
+          "item_name": "소프트웨어 라이선스",
+          "amount": 500000,
+          "description": "Adobe Creative Suite 월 구독료",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "bb0e8400-e29b-41d4-a716-446655440006",
+          "expense_date": "2024-09-20",
+          "item_name": "법무회계 서비스",
+          "amount": 200000,
+          "description": "세무사 수수료 (9월분)",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        }
+      ],
+      "recordCount": 6,
+      "checksum": "72cf930c"
+    },
+    {
+      "table": "funds_personal",
+      "schema": {
+        "id": "string",
+        "member_id": "string",
+        "expense_date": "string",
+        "item_name": "string",
+        "amount": "number",
+        "description": "string",
+        "receipt_files": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "expense_date": "2024-09-01",
+          "item_name": "교통비 지원",
+          "amount": 100000,
+          "description": "9월 대중교통비 지원",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440002",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "expense_date": "2024-09-03",
+          "item_name": "식비 보조",
+          "amount": 200000,
+          "description": "점심 식비 보조 (9월분)",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440003",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "expense_date": "2024-09-05",
+          "item_name": "도서 구입비",
+          "amount": 80000,
+          "description": "디자인 전문서적 구입",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440004",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "expense_date": "2024-09-10",
+          "item_name": "건강검진비",
+          "amount": 150000,
+          "description": "연간 건강검진 지원",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440005",
+          "member_id": "550e8400-e29b-41d4-a716-446655440005",
+          "expense_date": "2024-09-12",
+          "item_name": "선입금",
+          "amount": 500000,
+          "description": "급여 선지급",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440006",
+          "member_id": "550e8400-e29b-41d4-a716-446655440006",
+          "expense_date": "2024-09-15",
+          "item_name": "교육비 지원",
+          "amount": 300000,
+          "description": "온라인 디자인 강의 수강료",
+          "receipt_files": [],
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        }
+      ],
+      "recordCount": 6,
+      "checksum": "72cf930c"
+    },
+    {
+      "table": "settlements",
+      "schema": {
+        "id": "string",
+        "month": "string",
+        "status": "string",
+        "locked_at": "object",
+        "locked_by": "object",
+        "notes": "string",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "month": "2024-09-01",
+          "status": "DRAFT",
+          "locked_at": null,
+          "locked_by": null,
+          "notes": "2024년 9월 정산 (테스트용)",
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        }
+      ],
+      "recordCount": 1,
+      "checksum": "2b3b00"
+    },
+    {
+      "table": "settlement_items",
+      "schema": {
+        "id": "string",
+        "settlement_id": "string",
+        "member_id": "string",
+        "source_type": "string",
+        "source_id": "string",
+        "gross_amount": "number",
+        "net_amount": "number",
+        "base_amount": "number",
+        "designer_amount": "number",
+        "bonus_amount": "number",
+        "before_withholding": "number",
+        "withholding_tax": "number",
+        "after_withholding": "number",
+        "is_paid": "boolean",
+        "paid_at": "object",
+        "payment_method": "object",
+        "notes": "object",
+        "created_at": "string",
+        "updated_at": "string"
+      },
+      "data": [
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440001",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "source_type": "PROJECT",
+          "source_id": "990e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 1100000,
+          "net_amount": 1000000,
+          "base_amount": 1000000,
+          "designer_amount": 240000,
+          "bonus_amount": 24000,
+          "before_withholding": 264000,
+          "withholding_tax": 8712,
+          "after_withholding": 255288,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440002",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "source_type": "PROJECT",
+          "source_id": "990e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 1100000,
+          "net_amount": 1000000,
+          "base_amount": 1000000,
+          "designer_amount": 160000,
+          "bonus_amount": 8000,
+          "before_withholding": 168000,
+          "withholding_tax": 5544,
+          "after_withholding": 162456,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440003",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "source_type": "PROJECT",
+          "source_id": "990e8400-e29b-41d4-a716-446655440002",
+          "gross_amount": 550000,
+          "net_amount": 500000,
+          "base_amount": 550000,
+          "designer_amount": 220000,
+          "bonus_amount": 33000,
+          "before_withholding": 253000,
+          "withholding_tax": 8349,
+          "after_withholding": 244651,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440004",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "source_type": "CONTACT",
+          "source_id": "aa0e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 1000,
+          "net_amount": 1000,
+          "base_amount": 1000,
+          "designer_amount": 1000,
+          "bonus_amount": 0,
+          "before_withholding": 1000,
+          "withholding_tax": 33,
+          "after_withholding": 967,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440005",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "source_type": "CONTACT",
+          "source_id": "aa0e8400-e29b-41d4-a716-446655440002",
+          "gross_amount": 1000,
+          "net_amount": 1000,
+          "base_amount": 1000,
+          "designer_amount": 1000,
+          "bonus_amount": 0,
+          "before_withholding": 1000,
+          "withholding_tax": 33,
+          "after_withholding": 967,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440006",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "source_type": "CONTACT",
+          "source_id": "aa0e8400-e29b-41d4-a716-446655440003",
+          "gross_amount": 2000,
+          "net_amount": 2000,
+          "base_amount": 2000,
+          "designer_amount": 2000,
+          "bonus_amount": 0,
+          "before_withholding": 2000,
+          "withholding_tax": 66,
+          "after_withholding": 1934,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440007",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "source_type": "CONTACT",
+          "source_id": "aa0e8400-e29b-41d4-a716-446655440004",
+          "gross_amount": 1000,
+          "net_amount": 1000,
+          "base_amount": 1000,
+          "designer_amount": 1000,
+          "bonus_amount": 0,
+          "before_withholding": 1000,
+          "withholding_tax": 33,
+          "after_withholding": 967,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440008",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "source_type": "FEED",
+          "source_id": "bb0e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 1000,
+          "net_amount": 1000,
+          "base_amount": 1000,
+          "designer_amount": 1000,
+          "bonus_amount": 0,
+          "before_withholding": 1000,
+          "withholding_tax": 33,
+          "after_withholding": 967,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440009",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "source_type": "FEED",
+          "source_id": "bb0e8400-e29b-41d4-a716-446655440002",
+          "gross_amount": 400,
+          "net_amount": 400,
+          "base_amount": 400,
+          "designer_amount": 400,
+          "bonus_amount": 0,
+          "before_withholding": 400,
+          "withholding_tax": 13,
+          "after_withholding": 387,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440010",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "source_type": "FEED",
+          "source_id": "bb0e8400-e29b-41d4-a716-446655440003",
+          "gross_amount": 1000,
+          "net_amount": 1000,
+          "base_amount": 1000,
+          "designer_amount": 1000,
+          "bonus_amount": 0,
+          "before_withholding": 1000,
+          "withholding_tax": 33,
+          "after_withholding": 967,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440011",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "source_type": "FEED",
+          "source_id": "bb0e8400-e29b-41d4-a716-446655440004",
+          "gross_amount": 400,
+          "net_amount": 400,
+          "base_amount": 400,
+          "designer_amount": 400,
+          "bonus_amount": 0,
+          "before_withholding": 400,
+          "withholding_tax": 13,
+          "after_withholding": 387,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_at": "2025-09-25T12:48:40.868366+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440012",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "source_type": "TEAM_TASK",
+          "source_id": "ee0e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 50000,
+          "net_amount": 50000,
+          "base_amount": 50000,
+          "designer_amount": 50000,
+          "bonus_amount": 0,
+          "before_withholding": 50000,
+          "withholding_tax": 1650,
+          "after_withholding": 48350,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440013",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "source_type": "TEAM_TASK",
+          "source_id": "ee0e8400-e29b-41d4-a716-446655440002",
+          "gross_amount": 30000,
+          "net_amount": 30000,
+          "base_amount": 30000,
+          "designer_amount": 30000,
+          "bonus_amount": 0,
+          "before_withholding": 30000,
+          "withholding_tax": 990,
+          "after_withholding": 29010,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440014",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "source_type": "TEAM_TASK",
+          "source_id": "ee0e8400-e29b-41d4-a716-446655440003",
+          "gross_amount": 20000,
+          "net_amount": 20000,
+          "base_amount": 20000,
+          "designer_amount": 20000,
+          "bonus_amount": 0,
+          "before_withholding": 20000,
+          "withholding_tax": 660,
+          "after_withholding": 19340,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440015",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "source_type": "TEAM_TASK",
+          "source_id": "ee0e8400-e29b-41d4-a716-446655440004",
+          "gross_amount": 25000,
+          "net_amount": 25000,
+          "base_amount": 25000,
+          "designer_amount": 25000,
+          "bonus_amount": 0,
+          "before_withholding": 25000,
+          "withholding_tax": 825,
+          "after_withholding": 24175,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440016",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440001",
+          "source_type": "MILEAGE",
+          "source_id": "ff0e8400-e29b-41d4-a716-446655440001",
+          "gross_amount": 10000,
+          "net_amount": 10000,
+          "base_amount": 10000,
+          "designer_amount": 10000,
+          "bonus_amount": 0,
+          "before_withholding": 10000,
+          "withholding_tax": 330,
+          "after_withholding": 9670,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440017",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440002",
+          "source_type": "MILEAGE",
+          "source_id": "ff0e8400-e29b-41d4-a716-446655440002",
+          "gross_amount": 5000,
+          "net_amount": 5000,
+          "base_amount": 5000,
+          "designer_amount": 5000,
+          "bonus_amount": 0,
+          "before_withholding": 5000,
+          "withholding_tax": 165,
+          "after_withholding": 4835,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440018",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440003",
+          "source_type": "MILEAGE",
+          "source_id": "ff0e8400-e29b-41d4-a716-446655440003",
+          "gross_amount": 8000,
+          "net_amount": 8000,
+          "base_amount": 8000,
+          "designer_amount": 8000,
+          "bonus_amount": 0,
+          "before_withholding": 8000,
+          "withholding_tax": 264,
+          "after_withholding": 7736,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440019",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440004",
+          "source_type": "MILEAGE",
+          "source_id": "ff0e8400-e29b-41d4-a716-446655440004",
+          "gross_amount": 15000,
+          "net_amount": 15000,
+          "base_amount": 15000,
+          "designer_amount": 15000,
+          "bonus_amount": 0,
+          "before_withholding": 15000,
+          "withholding_tax": 495,
+          "after_withholding": 14505,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        },
+        {
+          "id": "dd0e8400-e29b-41d4-a716-446655440020",
+          "settlement_id": "cc0e8400-e29b-41d4-a716-446655440001",
+          "member_id": "550e8400-e29b-41d4-a716-446655440005",
+          "source_type": "MILEAGE",
+          "source_id": "ff0e8400-e29b-41d4-a716-446655440005",
+          "gross_amount": 3000,
+          "net_amount": 3000,
+          "base_amount": 3000,
+          "designer_amount": 3000,
+          "bonus_amount": 0,
+          "before_withholding": 3000,
+          "withholding_tax": 99,
+          "after_withholding": 2901,
+          "is_paid": false,
+          "paid_at": null,
+          "payment_method": null,
+          "notes": null,
+          "created_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_at": "2025-09-25T12:49:59.399623+00:00"
+        }
+      ],
+      "recordCount": 20,
+      "checksum": "efab38c"
+    },
+    {
+      "table": "app_settings",
+      "schema": {
+        "id": "string",
+        "key": "string",
+        "value": "object",
+        "description": "string",
+        "is_system": "boolean",
+        "updated_at": "string",
+        "updated_by": "object"
+      },
+      "data": [
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440001",
+          "key": "vat_rate",
+          "value": {
+            "rate": 0.1,
+            "description": "부가세율 10%"
+          },
+          "description": "부가세율 설정",
+          "is_system": true,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440002",
+          "key": "designer_distribution_rate",
+          "value": {
+            "rate": 0.4,
+            "description": "디자이너 분배율 40%"
+          },
+          "description": "디자이너 분배율",
+          "is_system": true,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440003",
+          "key": "withholding_tax_rate",
+          "value": {
+            "rate": 0.033,
+            "description": "원천징수세율 3.3%"
+          },
+          "description": "원천징수세율",
+          "is_system": true,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440004",
+          "key": "ad_fee_rate",
+          "value": {
+            "rate": 0.1,
+            "description": "광고비 10%"
+          },
+          "description": "광고비율",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440005",
+          "key": "program_fee_rate",
+          "value": {
+            "rate": 0.03,
+            "description": "프로그램비 3%"
+          },
+          "description": "프로그램 수수료율",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440006",
+          "key": "contact_amounts",
+          "value": {
+            "CHAT": 1000,
+            "GUIDE": 2000,
+            "INCOMING": 1000
+          },
+          "description": "컨택 활동별 금액",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440007",
+          "key": "feed_amounts",
+          "value": {
+            "GTE3": 1000,
+            "BELOW3": 400
+          },
+          "description": "피드 활동별 금액",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440008",
+          "key": "bonus_range",
+          "value": {
+            "max": 20,
+            "min": 0,
+            "description": "보너스 비율 범위 0-20%"
+          },
+          "description": "보너스 비율 범위",
+          "is_system": true,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440009",
+          "key": "designer_percentage_validation",
+          "value": {
+            "enabled": true,
+            "description": "디자이너 지분 합계 100% 검증",
+            "sum_must_equal": 100
+          },
+          "description": "디자이너 지분 검증 규칙",
+          "is_system": true,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440010",
+          "key": "file_upload_limits",
+          "value": {
+            "allowed_types": [
+              "image/jpeg",
+              "image/png",
+              "application/pdf"
+            ],
+            "max_file_size_mb": 10,
+            "max_files_per_project": 5
+          },
+          "description": "파일 업로드 제한",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440011",
+          "key": "currency_settings",
+          "value": {
+            "locale": "ko-KR",
+            "currency": "KRW",
+            "decimal_places": 0
+          },
+          "description": "통화 및 형식 설정",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440012",
+          "key": "company_info",
+          "value": {
+            "name": "MZS Studio",
+            "email": "",
+            "phone": "",
+            "address": "",
+            "business_number": ""
+          },
+          "description": "회사 정보",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440013",
+          "key": "settlement_settings",
+          "value": {
+            "require_approval": false,
+            "lock_after_payment": true,
+            "auto_create_monthly": true
+          },
+          "description": "정산 설정",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:48:40.868366+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440014",
+          "key": "mileage_conversion_rate",
+          "value": {
+            "description": "마일리지 포인트 환율 (10포인트 = 100원)",
+            "points_per_krw": 10
+          },
+          "description": "마일리지 포인트 환율 설정",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_by": null
+        },
+        {
+          "id": "880e8400-e29b-41d4-a716-446655440015",
+          "key": "team_task_rates",
+          "value": {
+            "meeting": 25000,
+            "training": 20000,
+            "office_work": 15000,
+            "client_visit": 30000
+          },
+          "description": "팀 업무별 기본 단가",
+          "is_system": false,
+          "updated_at": "2025-09-25T12:49:59.399623+00:00",
+          "updated_by": null
+        }
+      ],
+      "recordCount": 15,
+      "checksum": "-13ccd580"
+    }
+  ]
+}

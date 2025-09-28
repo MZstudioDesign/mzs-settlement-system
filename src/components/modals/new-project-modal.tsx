@@ -72,7 +72,10 @@ export const NewProjectModal = memo(function NewProjectModal({ children }: NewPr
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        data-testid="dlg-new-project"
+        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>

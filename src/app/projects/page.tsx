@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { useDebounce, createCurrencyFormatter, createNumberFormatter, perf } from '@/lib/performance'
+import { useDebounce, createCurrencyFormatter, createNumberFormatter, bundleAnalysis } from '@/lib/performance'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -231,7 +231,7 @@ export default function ProjectsPage() {
       return sum + settlement.afterWithholding
     }, 0)
 
-    perf.logComputation('getProjectSettlement', startTime)
+    bundleAnalysis.logComputation('getProjectSettlement', startTime)
     return totalDesignerAmount
   }, [])
 
@@ -250,15 +250,15 @@ export default function ProjectsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" data-testid="btn-export-projects">
             <Download className="h-4 w-4 mr-2" />
             내보내기
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" data-testid="btn-import-projects">
             <Upload className="h-4 w-4 mr-2" />
             가져오기
           </Button>
-          <Button asChild>
+          <Button asChild data-testid="btn-new-project-main">
             <Link href="/projects/new">
               <Plus className="h-4 w-4 mr-2" />
               새 프로젝트
@@ -397,6 +397,7 @@ export default function ProjectsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleBatchStatusUpdate('APPROVED')}
+                  data-testid="btn-batch-approve"
                 >
                   승인
                 </Button>
@@ -404,6 +405,7 @@ export default function ProjectsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleBatchStatusUpdate('COMPLETED')}
+                  data-testid="btn-batch-complete"
                 >
                   완료
                 </Button>
@@ -411,6 +413,7 @@ export default function ProjectsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowDeleteDialog(true)}
+                  data-testid="btn-batch-delete"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   삭제
@@ -466,7 +469,7 @@ export default function ProjectsPage() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>{project.channel.name}</TableCell>
+                  <TableCell>{project.channel?.name || '-'}</TableCell>
                   <TableCell>{project.category?.name || '-'}</TableCell>
                   <TableCell className="font-mono">
                     {currencyFormatter.format(project.gross_amount)}
@@ -548,6 +551,7 @@ export default function ProjectsPage() {
               size="sm"
               disabled={pagination.page <= 1}
               onClick={() => setPage(page - 1)}
+              data-testid="btn-page-prev"
             >
               이전
             </Button>
@@ -556,6 +560,7 @@ export default function ProjectsPage() {
               size="sm"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => setPage(page + 1)}
+              data-testid="btn-page-next"
             >
               다음
             </Button>

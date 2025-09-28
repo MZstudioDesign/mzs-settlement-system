@@ -1,7 +1,9 @@
 /**
- * CSV 내보내기 및 ETL 기능
+ * CSV/PDF 내보내기 및 ETL 기능
  * 지침서 요구사항: CSV 템플릿을 사용한 ETL, 정산 결과 CSV/PDF 내보내기
  */
+
+// jsPDF를 dynamic import로 변경 (SSR 충돌 방지)
 
 // CSV 헤더 정의
 export const CSV_HEADERS = {
@@ -537,4 +539,238 @@ function validateFieldType(value: any, type: string): string | null {
   }
 
   return null
+}
+
+/**
+ * PDF 유틸리티 함수들
+ */
+
+/**
+ * 정산 결과를 PDF로 내보내기
+ */
+export async function exportSettlementToPDF(
+  settlementItems: Array<any>,
+  members: Record<string, any>,
+  settlement: { ym: string; note?: string }
+): Promise<void> {
+  // 클라이언트 환경에서만 jsPDF 로드
+  if (typeof window === 'undefined') {
+    console.error('PDF 생성은 브라우저 환경에서만 가능합니다.')
+    return
+  }
+
+  const { default: jsPDF } = await import('jspdf')
+  const doc = new jsPDF()
+
+  // 제목
+  doc.setFontSize(20)
+  doc.text(`MZS 스튜디오 정산서 (${settlement.ym})`, 20, 20)
+
+  // 기본 정보
+  doc.setFontSize(12)
+  let yPosition = 40
+  doc.text(`정산 기간: ${settlement.ym}`, 20, yPosition)
+  yPosition += 10
+  doc.text(`생성일: ${new Date().toLocaleDateString('ko-KR')}`, 20, yPosition)
+  yPosition += 20
+
+  // 멤버별 정산 요약
+  const memberGroups = settlementItems.reduce((acc, item) => {
+    const memberId = item.member_id
+    if (!acc[memberId]) {
+      acc[memberId] = []
+    }
+    acc[memberId].push(item)
+    return acc
+  }, {} as Record<string, any[]>)
+
+  doc.setFontSize(14)
+  doc.text('멤버별 정산 요약', 20, yPosition)
+  yPosition += 15
+
+  Object.entries(memberGroups).forEach(([memberId, items]) => {
+    const member = members[memberId]
+    const totalBefore = items.reduce((sum, item) => sum + (item.amount_before_withholding || 0), 0)
+    const totalWithholding = items.reduce((sum, item) => sum + (item.withholding_3_3 || 0), 0)
+    const totalAfter = items.reduce((sum, item) => sum + (item.amount_after_withholding || 0), 0)
+
+    if (yPosition > 250) {
+      doc.addPage()
+      yPosition = 20
+    }
+
+    doc.setFontSize(12)
+    doc.text(`${member?.name || 'Unknown'} (${member?.code || 'XX'})`, 20, yPosition)
+    yPosition += 7
+    doc.setFontSize(10)
+    doc.text(`원천징수 전: ${formatKRW(totalBefore)}`, 30, yPosition)
+    yPosition += 7
+    doc.text(`원천징수액: ${formatKRW(totalWithholding)}`, 30, yPosition)
+    yPosition += 7
+    doc.text(`실지급액: ${formatKRW(totalAfter)}`, 30, yPosition)
+    yPosition += 15
+  })
+
+  // 전체 요약
+  const totalBefore = settlementItems.reduce((sum, item) => sum + (item.amount_before_withholding || 0), 0)
+  const totalWithholding = settlementItems.reduce((sum, item) => sum + (item.withholding_3_3 || 0), 0)
+  const totalAfter = settlementItems.reduce((sum, item) => sum + (item.amount_after_withholding || 0), 0)
+
+  if (yPosition > 230) {
+    doc.addPage()
+    yPosition = 20
+  }
+
+  doc.setFontSize(14)
+  doc.text('전체 합계', 20, yPosition)
+  yPosition += 15
+  doc.setFontSize(12)
+  doc.text(`원천징수 전 총액: ${formatKRW(totalBefore)}`, 20, yPosition)
+  yPosition += 10
+  doc.text(`원천징수액 총액: ${formatKRW(totalWithholding)}`, 20, yPosition)
+  yPosition += 10
+  doc.text(`실지급액 총액: ${formatKRW(totalAfter)}`, 20, yPosition)
+
+  // PDF 다운로드
+  doc.save(`settlement_${settlement.ym}.pdf`)
+}
+
+/**
+ * 멤버별 정산 상세를 PDF로 내보내기
+ */
+export async function exportMemberSettlementDetailToPDF(
+  settlementItems: Array<any>,
+  members: Record<string, any>,
+  settlement: { ym: string; note?: string },
+  memberId?: string
+): Promise<void> {
+  // 클라이언트 환경에서만 jsPDF 로드
+  if (typeof window === 'undefined') {
+    console.error('PDF 생성은 브라우저 환경에서만 가능합니다.')
+    return
+  }
+
+  const { default: jsPDF } = await import('jspdf')
+  const doc = new jsPDF()
+
+  // 특정 멤버 필터링
+  const filteredItems = memberId
+    ? settlementItems.filter(item => item.member_id === memberId)
+    : settlementItems
+
+  const targetMember = memberId ? members[memberId] : null
+
+  // 제목
+  doc.setFontSize(18)
+  const title = targetMember
+    ? `${targetMember.name} 정산 상세서 (${settlement.ym})`
+    : `전체 정산 상세서 (${settlement.ym})`
+  doc.text(title, 20, 20)
+
+  let yPosition = 40
+
+  // 항목별 상세
+  filteredItems.forEach((item, index) => {
+    if (yPosition > 250) {
+      doc.addPage()
+      yPosition = 20
+    }
+
+    const member = members[item.member_id]
+    const sourceTypeLabels: Record<string, string> = {
+      'project': '프로젝트',
+      'contact': '컨택',
+      'feed': '피드',
+      'team': '팀업무'
+    }
+
+    doc.setFontSize(12)
+    doc.text(`${index + 1}. ${member?.name || 'Unknown'} - ${sourceTypeLabels[item.source_type] || item.source_type}`, 20, yPosition)
+    yPosition += 8
+
+    doc.setFontSize(10)
+    if (item.designer_amount) {
+      doc.text(`디자인 금액: ${formatKRW(item.designer_amount)}`, 25, yPosition)
+      yPosition += 6
+    }
+    if (item.designer_bonus_amount) {
+      doc.text(`보너스 금액: ${formatKRW(item.designer_bonus_amount)}`, 25, yPosition)
+      yPosition += 6
+    }
+    if (item.contact_amount) {
+      doc.text(`컨택 금액: ${formatKRW(item.contact_amount)}`, 25, yPosition)
+      yPosition += 6
+    }
+    if (item.feed_amount) {
+      doc.text(`피드 금액: ${formatKRW(item.feed_amount)}`, 25, yPosition)
+      yPosition += 6
+    }
+    if (item.team_amount) {
+      doc.text(`팀업무 금액: ${formatKRW(item.team_amount)}`, 25, yPosition)
+      yPosition += 6
+    }
+
+    doc.text(`원천징수 전: ${formatKRW(item.amount_before_withholding || 0)}`, 25, yPosition)
+    yPosition += 6
+    doc.text(`원천징수액 (3.3%): ${formatKRW(item.withholding_3_3 || 0)}`, 25, yPosition)
+    yPosition += 6
+    doc.text(`실지급액: ${formatKRW(item.amount_after_withholding || 0)}`, 25, yPosition)
+    yPosition += 6
+    doc.text(`지급상태: ${item.paid ? '지급완료' : '미지급'}`, 25, yPosition)
+
+    if (item.paid_date) {
+      yPosition += 6
+      doc.text(`지급일: ${item.paid_date}`, 25, yPosition)
+    }
+
+    if (item.memo) {
+      yPosition += 6
+      doc.text(`메모: ${item.memo}`, 25, yPosition)
+    }
+
+    yPosition += 15
+  })
+
+  // PDF 다운로드
+  const filename = targetMember
+    ? `settlement_${settlement.ym}_${targetMember.code}.pdf`
+    : `settlement_${settlement.ym}_detail.pdf`
+  doc.save(filename)
+}
+
+/**
+ * 한화 형식으로 포맷팅 (PDF용 간소화)
+ */
+function formatKRW(amount: number): string {
+  return new Intl.NumberFormat('ko-KR', {
+    style: 'currency',
+    currency: 'KRW',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+/**
+ * PDF 파일 다운로드
+ */
+export function downloadPDF(pdfContent: any, filename: string): void {
+  pdfContent.save(filename)
+}
+
+/**
+ * 정산 데이터 PDF 일괄 내보내기
+ */
+export async function exportAllSettlementPDFData(
+  settlement: any,
+  settlementItems: Array<any>,
+  members: Record<string, any>,
+  filename?: string
+): Promise<void> {
+  const baseFilename = filename || `settlement_${settlement.ym}`
+
+  // 요약 PDF
+  await exportSettlementToPDF(settlementItems, members, settlement)
+
+  // 상세 PDF (전체)
+  await exportMemberSettlementDetailToPDF(settlementItems, members, settlement)
 }

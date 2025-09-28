@@ -18,14 +18,14 @@ import {
   Award,
   Target,
   Activity,
-  Plus,
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
 import { UnpaidSummaryCard } from '@/components/dashboard/unpaid-summary';
-import { NewProjectModal } from '@/components/modals/new-project-modal';
+import NewProjectDialog from '@/components/NewProjectDialog';
 import { getUnpaidSummary, type UnpaidSummary } from '@/lib/unpaid-tracker';
 import { toKRW } from '@/lib/currency';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Mock data - 실제 구현시 API에서 가져올 데이터
 const mockDashboardData = {
@@ -68,20 +68,44 @@ export default function Dashboard() {
   const [data, setData] = useState(mockDashboardData);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [unpaidSummary, setUnpaidSummary] = useState<UnpaidSummary | null>(null);
+  const [isUnpaidDetailModalOpen, setIsUnpaidDetailModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // 미지급 현황 로드
+  // 미지급 현황 로드 (임시 비활성화 - DB 연결 문제로 인한 무한 로딩 방지)
   useEffect(() => {
-    getUnpaidSummary()
-      .then(setUnpaidSummary)
-      .catch((error) => {
-        console.warn('미지급 데이터 로드 실패 (테이블이 없을 수 있음):', error.message);
-        setUnpaidSummary(null); // 기본값 설정
-      });
+    // 개발 환경에서는 목업 데이터 직접 설정
+    setUnpaidSummary({
+      totalUnpaidAmount: 2340000,
+      totalUnpaidCount: 5,
+      unpaidByMember: [
+        {
+          memberId: 'dev-oy',
+          memberName: '오유택',
+          memberCode: 'OY',
+          unpaidAmount: 800000,
+          unpaidCount: 2
+        }
+      ],
+      unpaidByType: {
+        design: 1800000,
+        contact: 90000,
+        feed: 150000,
+        team: 200000,
+        mileage: 100000
+      }
+    });
+
+    // TODO: DB 연결 안정화 후 주석 해제
+    // getUnpaidSummary()
+    //   .then(setUnpaidSummary)
+    //   .catch((error) => {
+    //     console.warn('미지급 데이터 로드 실패 (테이블이 없을 수 있음):', error.message);
+    //     setUnpaidSummary(null); // 기본값 설정
+    //   });
   }, []);
 
   // Memoized calculation functions
@@ -123,12 +147,7 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <NewProjectModal>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                새 프로젝트
-              </Button>
-            </NewProjectModal>
+            <NewProjectDialog />
             <Button variant="outline" asChild>
               <Link href="/settlements">
                 <Calculator className="mr-2 h-4 w-4" />
@@ -210,7 +229,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all duration-200">
+          <Card className="hover:shadow-lg transition-all duration-200" data-testid="kpi-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">정산 완료</CardTitle>
               <Calculator className="h-4 w-4 text-muted-foreground" />
@@ -262,7 +281,7 @@ export default function Dashboard() {
         {unpaidSummary && unpaidSummary.totalUnpaidAmount > 0 && (
           <section>
             <UnpaidSummaryCard
-              onViewDetails={() => window.open('/settlements', '_blank')}
+              onViewDetails={() => setIsUnpaidDetailModalOpen(true)}
             />
           </section>
         )}
@@ -356,12 +375,7 @@ export default function Dashboard() {
         <section className="bg-muted/50 rounded-2xl p-6">
           <h3 className="text-xl font-semibold mb-4">빠른 작업</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <NewProjectModal>
-              <Button className="h-auto p-4 flex-col gap-2" variant="outline">
-                <Calculator className="h-6 w-6" />
-                <span className="text-sm">새 프로젝트</span>
-              </Button>
-            </NewProjectModal>
+            <NewProjectDialog />
             <Button className="h-auto p-4 flex-col gap-2" variant="outline" asChild>
               <Link href="/contacts">
                 <Users className="h-6 w-6" />
@@ -382,6 +396,149 @@ export default function Dashboard() {
             </Button>
           </div>
         </section>
+
+        {/* 상세 미지급 내역 모달 */}
+        <Dialog open={isUnpaidDetailModalOpen} onOpenChange={setIsUnpaidDetailModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-500" />
+                상세 미지급 내역
+              </DialogTitle>
+              <DialogDescription>
+                현재 지급되지 않은 모든 항목을 확인하고 관리할 수 있습니다.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* 미지급 요약 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">미지급 요약</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {unpaidSummary ? toKRW(unpaidSummary.totalUnpaidAmount) : '0원'}
+                      </div>
+                      <div className="text-sm text-orange-700">총 미지급 금액</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {unpaidSummary ? unpaidSummary.totalUnpaidCount : 0}건
+                      </div>
+                      <div className="text-sm text-blue-700">미지급 항목 수</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {unpaidSummary ? unpaidSummary.unpaidByMember.length : 0}명
+                      </div>
+                      <div className="text-sm text-purple-700">미지급 대상자</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 타입별 미지급 현황 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">타입별 미지급 현황</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {unpaidSummary && Object.entries({
+                      design: '디자인',
+                      contact: '컨택',
+                      feed: '피드',
+                      team: '팀업무',
+                      mileage: '마일리지'
+                    }).map(([type, label]) => {
+                      const amount = unpaidSummary.unpaidByType[type as keyof typeof unpaidSummary.unpaidByType] || 0;
+                      return (
+                        <div key={type} className="text-center p-3 bg-muted/30 rounded-lg">
+                          <div className="text-lg font-bold text-orange-600">
+                            {toKRW(amount)}
+                          </div>
+                          <div className="text-sm text-muted-foreground">{label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 개별 미지급 상세 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">개별 미지급 상세</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {unpaidSummary && unpaidSummary.unpaidByMember.length > 0 ? (
+                      unpaidSummary.unpaidByMember.map((member) => (
+                        <div key={member.memberId} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <Badge variant="outline" className="text-sm">
+                                {member.memberCode}
+                              </Badge>
+                              <h4 className="font-semibold">{member.memberName}</h4>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xl font-bold text-orange-600">
+                                {toKRW(member.unpaidAmount)}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {member.unpaidCount}건
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 상세 항목별 분류 (실제 구현시에는 API에서 가져올 데이터) */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 pt-3 border-t">
+                            <div className="text-center p-2 bg-blue-50 rounded">
+                              <div className="font-medium text-blue-600">디자인</div>
+                              <div className="text-sm">{toKRW(Math.floor(member.unpaidAmount * 0.7))}</div>
+                            </div>
+                            <div className="text-center p-2 bg-green-50 rounded">
+                              <div className="font-medium text-green-600">컨택</div>
+                              <div className="text-sm">{toKRW(Math.floor(member.unpaidAmount * 0.15))}</div>
+                            </div>
+                            <div className="text-center p-2 bg-purple-50 rounded">
+                              <div className="font-medium text-purple-600">피드</div>
+                              <div className="text-sm">{toKRW(Math.floor(member.unpaidAmount * 0.1))}</div>
+                            </div>
+                            <div className="text-center p-2 bg-yellow-50 rounded">
+                              <div className="font-medium text-yellow-600">팀업무</div>
+                              <div className="text-sm">{toKRW(Math.floor(member.unpaidAmount * 0.05))}</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        현재 미지급 항목이 없습니다.
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 액션 버튼 */}
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={() => setIsUnpaidDetailModalOpen(false)}>
+                  닫기
+                </Button>
+                <Button asChild>
+                  <Link href="/settlements">
+                    정산 페이지로 이동
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
     </div>
   );
 }

@@ -226,7 +226,7 @@ export function QuickLoggerFAB({
   ]
 
   return (
-    <div className={cn("fixed bottom-4 right-4 z-50", className)}>
+    <div className={cn("fixed bottom-4 right-4 z-50 md:hidden", className)} data-testid="mobile-fab">
       {/* 멤버 선택 패널 (확장 시에만 표시) */}
       {isExpanded && (
         <div className="mb-4 bg-white rounded-2xl shadow-lg border p-4 w-80">

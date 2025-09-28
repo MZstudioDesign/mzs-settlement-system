@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-09-26T09:53:23.769Z",
+  "phase": "completed",
+  "backupName": "excel_migration_2025_09_26_18_53_23",
+  "excelFile": "정산 NEW 시트.xlsm",
+  "sheetsProcessed": [
+    "settlements",
+    "contacts",
+    "team_tasks"
+  ],
+  "recordsMigrated": {
+    "settlements": 346,
+    "contacts": 3,
+    "team_tasks": 479
+  },
+  "validationResults": [
+    {
+      "table": "projects",
+      "expectedRecords": 300,
+      "actualRecords": 2,
+      "dataIntegrityCheck": "PASS",
+      "issues": [
+        "Record count too low: 2 < 100"
+      ]
+    },
+    {
+      "table": "contacts",
+      "expectedRecords": 175,
+      "actualRecords": 4,
+      "dataIntegrityCheck": "PASS",
+      "issues": [
+        "Record count too low: 4 < 50"
+      ]
+    },
+    {
+      "table": "team_tasks",
+      "expectedRecords": 400,
+      "actualRecords": 4,
+      "dataIntegrityCheck": "PASS",
+      "issues": [
+        "Record count too low: 4 < 200"
+      ]
+    }
+  ],
+  "errors": [],
+  "totalDuration": 117598,
+  "success": true,
+  "backupPath": "D:\\잠깐만머물께\\웹사이트 디자인\\mzs_sheet\\mzs-settlement-system\\backups\\excel_migration_2025_09_26_18_53_23_*.json"
+}

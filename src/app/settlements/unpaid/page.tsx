@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MainLayout } from '@/components/layout/main-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -63,8 +62,7 @@ export default function UnpaidManagementPage() {
 
   if (loading) {
     return (
-      <MainLayout title="미지급 관리" subtitle="정산 항목 지급 상태 관리">
-        <div className="space-y-6">
+      <div className="space-y-6">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/settlements">
@@ -86,14 +84,12 @@ export default function UnpaidManagementPage() {
               </div>
             </div>
           </div>
-        </div>
-      </MainLayout>
+      </div>
     )
   }
 
   return (
-    <MainLayout title="미지급 관리" subtitle="정산 항목 지급 상태 관리">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 네비게이션 */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild>
@@ -244,7 +240,6 @@ export default function UnpaidManagementPage() {
             </div>
           </div>
         )}
-      </div>
-    </MainLayout>
+    </div>
   )
 }

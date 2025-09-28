@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Save,
   X,
@@ -33,53 +42,60 @@ import {
   CheckCircle
 } from "lucide-react";
 import { MoneyInput } from "@/components/ui/money-input";
-import { formatCurrency } from "@/lib/currency";
 
-interface ContactData {
+// Zod 스키마 정의
+const contactSchema = z.object({
+  type: z.enum(['inbound', 'consultation', 'guide']),
+  clientName: z.string().min(1, '클라이언트명은 필수입니다'),
+  clientEmail: z.string().email('올바른 이메일 형식이 아닙니다').optional().or(z.literal('')),
+  clientPhone: z.string().optional(),
+  contactMethod: z.enum(['phone', 'email', 'website', 'referral', 'other']),
+  referralSource: z.string().optional(),
+  projectType: z.string().min(1, '프로젝트 유형을 선택해주세요'),
+  projectDescription: z.string().optional(),
+  estimatedBudget: z.number().min(0, '예산은 0 이상이어야 합니다'),
+  budgetRange: z.enum(['under_1m', '1m_3m', '3m_5m', '5m_10m', 'over_10m']),
+  timeline: z.string().optional(),
+  urgency: z.enum(['low', 'medium', 'high']),
+  location: z.string().optional(),
+  followUpDate: z.string().optional(),
+  status: z.enum(['new', 'contacted', 'quoted', 'negotiating', 'won', 'lost']),
+  notes: z.string(),
+  tags: z.array(z.string()).default([]),
+});
+
+const feedSchema = z.object({
+  type: z.enum(['under_3', 'over_3']),
+  projectName: z.string().min(1, '프로젝트명은 필수입니다'),
+  clientName: z.string().min(1, '클라이언트명은 필수입니다'),
+  feedbackRound: z.number().min(1, '피드백 라운드는 1 이상이어야 합니다').max(20, '피드백 라운드는 20 이하여야 합니다'),
+  feedbackCount: z.number().min(1, '피드백 개수는 1 이상이어야 합니다').max(50, '피드백 개수는 50 이하여야 합니다'),
+  feedbackType: z.enum(['concept', 'design', 'copy', 'technical', 'final']),
+  satisfaction: z.enum([1, 2, 3, 4, 5]),
+  timeSpent: z.number().min(1, '소요 시간은 1분 이상이어야 합니다').max(480, '소요 시간은 480분 이하여야 합니다'),
+  complexity: z.enum(['simple', 'medium', 'complex']),
+  needsRevision: z.boolean(),
+  revisionType: z.enum(['minor', 'major', 'concept']).optional(),
+  revisionReason: z.string().optional(),
+  clientResponse: z.enum(['positive', 'neutral', 'negative']),
+  nextSteps: z.string().optional(),
+  notes: z.string(),
+});
+
+// 타입 추론
+type ContactData = z.infer<typeof contactSchema> & {
   id?: string;
-  type: 'inbound' | 'consultation' | 'guide';
-  clientName: string;
-  clientEmail?: string;
-  clientPhone?: string;
-  contactMethod: 'phone' | 'email' | 'website' | 'referral' | 'other';
-  referralSource?: string;
-  projectType: string;
-  projectDescription?: string;
-  estimatedBudget: number;
-  budgetRange: 'under_1m' | '1m_3m' | '3m_5m' | '5m_10m' | 'over_10m';
-  timeline?: string;
-  urgency: 'low' | 'medium' | 'high';
-  location?: string;
-  followUpDate?: string;
-  status: 'new' | 'contacted' | 'quoted' | 'negotiating' | 'won' | 'lost';
-  notes: string;
-  tags: string[];
   createdAt: string;
   updatedAt: string;
-}
+};
 
-interface FeedData {
+type FeedData = z.infer<typeof feedSchema> & {
   id?: string;
-  type: 'under_3' | 'over_3';
   projectId?: string;
-  projectName: string;
-  clientName: string;
-  feedbackRound: number;
-  feedbackCount: number;
-  feedbackType: 'concept' | 'design' | 'copy' | 'technical' | 'final';
-  satisfaction: 1 | 2 | 3 | 4 | 5;
-  timeSpent: number; // 분
-  complexity: 'simple' | 'medium' | 'complex';
-  needsRevision: boolean;
-  revisionType?: 'minor' | 'major' | 'concept';
-  revisionReason?: string;
-  clientResponse: 'positive' | 'neutral' | 'negative';
-  nextSteps?: string;
-  notes: string;
   attachments?: string[];
   createdAt: string;
   updatedAt: string;
-}
+};
 
 interface ContactFeedModalProps {
   isOpen: boolean;
@@ -126,39 +142,12 @@ const PROJECT_TYPES = [
   '기타'
 ];
 
-const URGENCY_LEVELS = {
-  low: { label: '낮음', color: 'bg-gray-100 text-gray-800', description: '여유 있는 일정' },
-  medium: { label: '보통', color: 'bg-yellow-100 text-yellow-800', description: '일반적인 우선순위' },
-  high: { label: '높음', color: 'bg-red-100 text-red-800', description: '긴급 처리 필요' }
-};
-
-const CONTACT_STATUS = {
-  new: { label: '신규', color: 'bg-blue-100 text-blue-800' },
-  contacted: { label: '연락완료', color: 'bg-green-100 text-green-800' },
-  quoted: { label: '견적제공', color: 'bg-purple-100 text-purple-800' },
-  negotiating: { label: '협상중', color: 'bg-yellow-100 text-yellow-800' },
-  won: { label: '수주성공', color: 'bg-green-100 text-green-800' },
-  lost: { label: '수주실패', color: 'bg-red-100 text-red-800' }
-};
-
 const FEEDBACK_TYPES = {
   concept: '컨셉/아이디어',
   design: '디자인/비주얼',
   copy: '카피/텍스트',
   technical: '기술/기능',
   final: '최종 검토'
-};
-
-const COMPLEXITY_LEVELS = {
-  simple: { label: '단순', color: 'bg-green-100 text-green-800' },
-  medium: { label: '보통', color: 'bg-yellow-100 text-yellow-800' },
-  complex: { label: '복잡', color: 'bg-red-100 text-red-800' }
-};
-
-const CLIENT_RESPONSES = {
-  positive: { label: '긍정적', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  neutral: { label: '중립적', color: 'bg-gray-100 text-gray-800', icon: Clock },
-  negative: { label: '부정적', color: 'bg-red-100 text-red-800', icon: AlertCircle }
 };
 
 export function ContactFeedModal({
@@ -171,659 +160,640 @@ export function ContactFeedModal({
   mode = 'create'
 }: ContactFeedModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [newTag, setNewTag] = useState('');
 
-  // Contact Form State
-  const [contactData, setContactData] = useState<ContactData>({
-    type: 'inbound',
+  // Contact Form 초기값
+  const contactDefaultValues = {
+    type: 'inbound' as const,
     clientName: '',
-    contactMethod: 'phone',
+    clientEmail: '',
+    clientPhone: '',
+    contactMethod: 'phone' as const,
+    referralSource: '',
     projectType: '',
+    projectDescription: '',
     estimatedBudget: 0,
-    budgetRange: 'under_1m',
-    urgency: 'medium',
-    status: 'new',
+    budgetRange: 'under_1m' as const,
+    timeline: '',
+    urgency: 'medium' as const,
+    location: '',
+    followUpDate: '',
+    status: 'new' as const,
     notes: '',
     tags: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...(initialData && 'type' in initialData ? initialData : {})
-  });
+  };
 
-  // Feed Form State
-  const [feedData, setFeedData] = useState<FeedData>({
-    type: 'under_3',
+  // Feed Form 초기값
+  const feedDefaultValues = {
+    type: 'under_3' as const,
     projectName: '',
     clientName: '',
     feedbackRound: 1,
     feedbackCount: 1,
-    feedbackType: 'design',
-    satisfaction: 3,
+    feedbackType: 'design' as const,
+    satisfaction: 3 as const,
     timeSpent: 30,
-    complexity: 'medium',
+    complexity: 'medium' as const,
     needsRevision: false,
-    clientResponse: 'neutral',
+    revisionType: undefined,
+    revisionReason: '',
+    clientResponse: 'neutral' as const,
+    nextSteps: '',
     notes: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...(initialData && 'feedbackCount' in initialData ? initialData : {})
+  };
+
+  // React Hook Form 설정
+  const contactForm = useForm({
+    resolver: zodResolver(contactSchema),
+    defaultValues: contactDefaultValues,
   });
 
-  const [newTag, setNewTag] = useState('');
+  const feedForm = useForm({
+    resolver: zodResolver(feedSchema),
+    defaultValues: feedDefaultValues,
+  });
 
-  const handleSaveContact = () => {
-    if (onSaveContact && contactData.clientName.trim() && contactData.projectType) {
-      onSaveContact({
-        ...contactData,
+  // Contact Form 제출 핸들러
+  const handleSaveContact = (data: z.infer<typeof contactSchema>) => {
+    if (onSaveContact) {
+      const contactDataWithMeta: ContactData = {
+        ...data,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      };
+      onSaveContact(contactDataWithMeta);
       onClose();
     }
   };
 
-  const handleSaveFeed = () => {
-    if (onSaveFeed && feedData.projectName.trim() && feedData.clientName.trim()) {
-      onSaveFeed({
-        ...feedData,
+  // Feed Form 제출 핸들러
+  const handleSaveFeed = (data: z.infer<typeof feedSchema>) => {
+    if (onSaveFeed) {
+      const feedDataWithMeta: FeedData = {
+        ...data,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      };
+      onSaveFeed(feedDataWithMeta);
       onClose();
     }
   };
 
+  // 태그 관리
   const addTag = () => {
-    if (newTag.trim() && !contactData.tags.includes(newTag.trim())) {
-      setContactData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
+    const currentTags = contactForm.getValues('tags');
+    if (newTag.trim() && !currentTags.includes(newTag.trim())) {
+      contactForm.setValue('tags', [...currentTags, newTag.trim()]);
       setNewTag('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setContactData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
+    const currentTags = contactForm.getValues('tags');
+    contactForm.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
   };
 
   const renderContactForm = () => (
-    <div className="space-y-6">
-      {/* 컨택 타입 */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">컨택 타입</Label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {Object.entries(CONTACT_TYPES).map(([key, config]) => {
-            const Icon = config.icon;
-            const isSelected = contactData.type === key;
-            return (
-              <Card
-                key={key}
-                className={`cursor-pointer transition-all ${
-                  isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
-                }`}
-                onClick={() => setContactData(prev => ({ ...prev, type: key as any }))}
-              >
-                <CardContent className="p-4">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <Icon className="h-6 w-6 text-primary" />
-                    <div>
-                      <p className="font-medium">{config.label}</p>
-                      <p className="text-xs text-muted-foreground">{config.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 클라이언트 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">클라이언트 정보</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="client-name">클라이언트명 *</Label>
-              <Input
-                id="client-name"
-                value={contactData.clientName}
-                onChange={(e) => setContactData(prev => ({ ...prev, clientName: e.target.value }))}
-                placeholder="회사명 또는 개인명"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="client-email">이메일</Label>
-              <Input
-                id="client-email"
-                type="email"
-                value={contactData.clientEmail || ''}
-                onChange={(e) => setContactData(prev => ({ ...prev, clientEmail: e.target.value }))}
-                placeholder="client@example.com"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="client-phone">연락처</Label>
-              <Input
-                id="client-phone"
-                value={contactData.clientPhone || ''}
-                onChange={(e) => setContactData(prev => ({ ...prev, clientPhone: e.target.value }))}
-                placeholder="010-1234-5678"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>컨택 방법</Label>
-              <Select
-                value={contactData.contactMethod}
-                onValueChange={(value: any) => setContactData(prev => ({ ...prev, contactMethod: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(CONTACT_METHODS).map(([key, config]) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center space-x-2">
-                        <config.icon className="h-4 w-4" />
-                        <span>{config.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {contactData.contactMethod === 'referral' && (
-            <div className="space-y-2">
-              <Label htmlFor="referral-source">추천인/추천 경로</Label>
-              <Input
-                id="referral-source"
-                value={contactData.referralSource || ''}
-                onChange={(e) => setContactData(prev => ({ ...prev, referralSource: e.target.value }))}
-                placeholder="추천해준 사람이나 경로를 입력하세요"
-              />
-            </div>
+    <Form {...contactForm}>
+      <form onSubmit={contactForm.handleSubmit(handleSaveContact)} className="space-y-6">
+        {/* 컨택 타입 */}
+        <FormField
+          control={contactForm.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium">컨택 타입</FormLabel>
+              <FormControl>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {Object.entries(CONTACT_TYPES).map(([key, config]) => {
+                    const Icon = config.icon;
+                    const isSelected = field.value === key;
+                    return (
+                      <Card
+                        key={key}
+                        className={`cursor-pointer transition-all ${
+                          isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => field.onChange(key)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex flex-col items-center text-center space-y-2">
+                            <Icon className="h-6 w-6 text-primary" />
+                            <div>
+                              <p className="font-medium">{config.label}</p>
+                              <p className="text-xs text-muted-foreground">{config.description}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </CardContent>
-      </Card>
+        />
 
-      {/* 프로젝트 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">프로젝트 정보</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>프로젝트 유형 *</Label>
-            <Select
-              value={contactData.projectType}
-              onValueChange={(value) => setContactData(prev => ({ ...prev, projectType: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="프로젝트 유형을 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROJECT_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* 클라이언트 정보 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">클라이언트 정보</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={contactForm.control}
+                name="clientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>클라이언트명 *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="회사명 또는 개인명" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={contactForm.control}
+                name="clientEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>이메일</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="client@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="project-description">프로젝트 설명</Label>
-            <Textarea
-              id="project-description"
-              value={contactData.projectDescription || ''}
-              onChange={(e) => setContactData(prev => ({ ...prev, projectDescription: e.target.value }))}
-              placeholder="프로젝트에 대한 간단한 설명을 입력하세요..."
-              rows={3}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={contactForm.control}
+                name="clientPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>연락처</FormLabel>
+                    <FormControl>
+                      <Input placeholder="010-1234-5678" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={contactForm.control}
+                name="contactMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>컨택 방법</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(CONTACT_METHODS).map(([key, config]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center space-x-2">
+                              <config.icon className="h-4 w-4" />
+                              <span>{config.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={contactForm.control}
+              name="referralSource"
+              render={({ field }) => (
+                <FormItem className={contactForm.watch('contactMethod') === 'referral' ? '' : 'hidden'}>
+                  <FormLabel>추천인/추천 경로</FormLabel>
+                  <FormControl>
+                    <Input placeholder="추천해준 사람이나 경로를 입력하세요" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>예상 예산</Label>
-              <MoneyInput
-                value={contactData.estimatedBudget}
-                onChange={(value) => setContactData(prev => ({ ...prev, estimatedBudget: value }))}
-                placeholder="0"
+        {/* 프로젝트 정보 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">프로젝트 정보</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={contactForm.control}
+              name="projectType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>프로젝트 유형 *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="프로젝트 유형을 선택하세요" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PROJECT_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={contactForm.control}
+              name="projectDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>프로젝트 설명</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="프로젝트에 대한 간단한 설명을 입력하세요..."
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={contactForm.control}
+                name="estimatedBudget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>예상 예산</FormLabel>
+                    <FormControl>
+                      <MoneyInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="0"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={contactForm.control}
+                name="budgetRange"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>예산 범위</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(BUDGET_RANGES).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label>예산 범위</Label>
-              <Select
-                value={contactData.budgetRange}
-                onValueChange={(value: any) => setContactData(prev => ({ ...prev, budgetRange: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(BUDGET_RANGES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="timeline">희망 일정</Label>
-              <Input
-                id="timeline"
-                value={contactData.timeline || ''}
-                onChange={(e) => setContactData(prev => ({ ...prev, timeline: e.target.value }))}
-                placeholder="예: 4주 내, 연말까지"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">위치/지역</Label>
-              <Input
-                id="location"
-                value={contactData.location || ''}
-                onChange={(e) => setContactData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="예: 서울, 부산"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 우선순위 및 상태 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">우선순위 및 상태</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <Label>우선순위</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {Object.entries(URGENCY_LEVELS).map(([key, config]) => {
-                const isSelected = contactData.urgency === key;
-                return (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant={isSelected ? "default" : "outline"}
-                    className="h-auto p-3 flex flex-col space-y-1"
-                    onClick={() => setContactData(prev => ({ ...prev, urgency: key as any }))}
-                  >
-                    <span className="font-medium">{config.label}</span>
-                    <span className="text-xs opacity-70">{config.description}</span>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label>진행 상태</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {Object.entries(CONTACT_STATUS).map(([key, config]) => {
-                const isSelected = contactData.status === key;
-                return (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setContactData(prev => ({ ...prev, status: key as any }))}
-                  >
-                    {config.label}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="follow-up">팔로업 날짜</Label>
-            <div className="relative">
-              <Input
-                id="follow-up"
-                type="date"
-                value={contactData.followUpDate || ''}
-                onChange={(e) => setContactData(prev => ({ ...prev, followUpDate: e.target.value }))}
-              />
-              <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 태그 및 메모 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">추가 정보</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <Label>태그</Label>
-            <div className="flex space-x-2">
-              <Input
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="태그 입력"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTag();
-                  }
-                }}
-              />
-              <Button type="button" variant="outline" onClick={addTag}>
-                추가
-              </Button>
-            </div>
-            {contactData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {contactData.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="cursor-pointer"
-                    onClick={() => removeTag(tag)}
-                  >
-                    {tag} <X className="ml-1 h-3 w-3" />
-                  </Badge>
-                ))}
+        {/* 태그 및 메모 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">추가 정보</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <FormLabel>태그</FormLabel>
+              <div className="flex space-x-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="태그 입력"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                />
+                <Button type="button" variant="outline" onClick={addTag}>
+                  추가
+                </Button>
               </div>
-            )}
-          </div>
+              {contactForm.watch('tags').length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {contactForm.watch('tags').map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="cursor-pointer"
+                      onClick={() => removeTag(tag)}
+                    >
+                      {tag} <X className="ml-1 h-3 w-3" />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">메모</Label>
-            <Textarea
-              id="notes"
-              value={contactData.notes}
-              onChange={(e) => setContactData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="추가 정보나 특이사항을 입력하세요..."
-              rows={4}
+            <FormField
+              control={contactForm.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>메모</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="추가 정보나 특이사항을 입력하세요..."
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </form>
+    </Form>
   );
 
   const renderFeedForm = () => (
-    <div className="space-y-6">
-      {/* 피드 타입 */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">피드백 유형</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <Card
-            className={`cursor-pointer transition-all ${
-              feedData.type === 'under_3' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
-            }`}
-            onClick={() => setFeedData(prev => ({ ...prev, type: 'under_3' }))}
-          >
-            <CardContent className="p-4">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <Star className="h-6 w-6 text-green-600" />
-                <div>
-                  <p className="font-medium">3개 미만</p>
-                  <p className="text-xs text-muted-foreground">간단한 수정사항</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card
-            className={`cursor-pointer transition-all ${
-              feedData.type === 'over_3' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
-            }`}
-            onClick={() => setFeedData(prev => ({ ...prev, type: 'over_3' }))}
-          >
-            <CardContent className="p-4">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <Star className="h-6 w-6 text-yellow-600" />
-                <div>
-                  <p className="font-medium">3개 이상</p>
-                  <p className="text-xs text-muted-foreground">많은 수정사항</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* 프로젝트 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">프로젝트 정보</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="feed-project">프로젝트명 *</Label>
-              <Input
-                id="feed-project"
-                value={feedData.projectName}
-                onChange={(e) => setFeedData(prev => ({ ...prev, projectName: e.target.value }))}
-                placeholder="프로젝트명을 입력하세요"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="feed-client">클라이언트명 *</Label>
-              <Input
-                id="feed-client"
-                value={feedData.clientName}
-                onChange={(e) => setFeedData(prev => ({ ...prev, clientName: e.target.value }))}
-                placeholder="클라이언트명을 입력하세요"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="feedback-round">피드백 라운드</Label>
-              <Input
-                id="feedback-round"
-                type="number"
-                min="1"
-                max="20"
-                value={feedData.feedbackRound}
-                onChange={(e) => setFeedData(prev => ({ ...prev, feedbackRound: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="feedback-count">피드백 개수</Label>
-              <Input
-                id="feedback-count"
-                type="number"
-                min="1"
-                max="50"
-                value={feedData.feedbackCount}
-                onChange={(e) => setFeedData(prev => ({ ...prev, feedbackCount: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>피드백 종류</Label>
-              <Select
-                value={feedData.feedbackType}
-                onValueChange={(value: any) => setFeedData(prev => ({ ...prev, feedbackType: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(FEEDBACK_TYPES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 피드백 세부사항 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">피드백 세부사항</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="time-spent">소요 시간 (분)</Label>
-              <Input
-                id="time-spent"
-                type="number"
-                min="1"
-                max="480"
-                value={feedData.timeSpent}
-                onChange={(e) => setFeedData(prev => ({ ...prev, timeSpent: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>복잡도</Label>
-              <Select
-                value={feedData.complexity}
-                onValueChange={(value: any) => setFeedData(prev => ({ ...prev, complexity: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(COMPLEXITY_LEVELS).map(([key, config]) => (
-                    <SelectItem key={key} value={key}>{config.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label>클라이언트 만족도</Label>
-            <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((rating) => (
-                <Button
-                  key={rating}
-                  type="button"
-                  variant={feedData.satisfaction === rating ? "default" : "outline"}
-                  size="sm"
-                  className="w-12 h-12"
-                  onClick={() => setFeedData(prev => ({ ...prev, satisfaction: rating as any }))}
-                >
-                  {rating}
-                </Button>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              1: 매우 불만족, 2: 불만족, 3: 보통, 4: 만족, 5: 매우 만족
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <Label>클라이언트 반응</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {Object.entries(CLIENT_RESPONSES).map(([key, config]) => {
-                const Icon = config.icon;
-                const isSelected = feedData.clientResponse === key;
-                return (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant={isSelected ? "default" : "outline"}
-                    className="h-auto p-3 flex flex-col space-y-1"
-                    onClick={() => setFeedData(prev => ({ ...prev, clientResponse: key as any }))}
+    <Form {...feedForm}>
+      <form onSubmit={feedForm.handleSubmit(handleSaveFeed)} className="space-y-6">
+        {/* 피드 타입 */}
+        <FormField
+          control={feedForm.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium">피드백 유형</FormLabel>
+              <FormControl>
+                <div className="grid grid-cols-2 gap-3">
+                  <Card
+                    className={`cursor-pointer transition-all ${
+                      field.value === 'under_3' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() => field.onChange('under_3')}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="text-sm">{config.label}</span>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 수정 사항 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">수정 사항</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="needs-revision"
-              checked={feedData.needsRevision}
-              onChange={(e) => setFeedData(prev => ({ ...prev, needsRevision: e.target.checked }))}
-              className="rounded border-gray-300"
-            />
-            <Label htmlFor="needs-revision">수정이 필요합니다</Label>
-          </div>
-
-          {feedData.needsRevision && (
-            <div className="space-y-4 pl-6 border-l-2 border-muted">
-              <div className="space-y-2">
-                <Label>수정 유형</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { key: 'minor', label: '미세조정' },
-                    { key: 'major', label: '대폭수정' },
-                    { key: 'concept', label: '컨셉변경' }
-                  ].map((type) => (
-                    <Button
-                      key={type.key}
-                      type="button"
-                      variant={feedData.revisionType === type.key ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFeedData(prev => ({ ...prev, revisionType: type.key as any }))}
-                    >
-                      {type.label}
-                    </Button>
-                  ))}
+                    <CardContent className="p-4">
+                      <div className="flex flex-col items-center text-center space-y-2">
+                        <Star className="h-6 w-6 text-green-600" />
+                        <div>
+                          <p className="font-medium">3개 미만</p>
+                          <p className="text-xs text-muted-foreground">간단한 수정사항</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card
+                    className={`cursor-pointer transition-all ${
+                      field.value === 'over_3' ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() => field.onChange('over_3')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex flex-col items-center text-center space-y-2">
+                        <Star className="h-6 w-6 text-yellow-600" />
+                        <div>
+                          <p className="font-medium">3개 이상</p>
+                          <p className="text-xs text-muted-foreground">많은 수정사항</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="revision-reason">수정 사유</Label>
-                <Textarea
-                  id="revision-reason"
-                  value={feedData.revisionReason || ''}
-                  onChange={(e) => setFeedData(prev => ({ ...prev, revisionReason: e.target.value }))}
-                  placeholder="수정이 필요한 이유를 입력하세요..."
-                  rows={2}
-                />
-              </div>
-            </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="next-steps">다음 단계</Label>
-            <Textarea
-              id="next-steps"
-              value={feedData.nextSteps || ''}
-              onChange={(e) => setFeedData(prev => ({ ...prev, nextSteps: e.target.value }))}
-              placeholder="다음에 진행할 작업이나 계획을 입력하세요..."
-              rows={2}
-            />
-          </div>
+        {/* 프로젝트 정보 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">프로젝트 정보</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={feedForm.control}
+                name="projectName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>프로젝트명 *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="프로젝트명을 입력하세요" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={feedForm.control}
+                name="clientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>클라이언트명 *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="클라이언트명을 입력하세요" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="feed-notes">피드백 내용</Label>
-            <Textarea
-              id="feed-notes"
-              value={feedData.notes}
-              onChange={(e) => setFeedData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="피드백 내용이나 추가 정보를 상세히 입력하세요..."
-              rows={4}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={feedForm.control}
+                name="feedbackRound"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>피드백 라운드</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="20"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={feedForm.control}
+                name="feedbackCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>피드백 개수</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="50"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={feedForm.control}
+                name="feedbackType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>피드백 종류</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(FEEDBACK_TYPES).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 피드백 세부사항 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">피드백 세부사항</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={feedForm.control}
+                name="timeSpent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>소요 시간 (분)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="480"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={feedForm.control}
+                name="complexity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>복잡도</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="simple">단순</SelectItem>
+                        <SelectItem value="medium">보통</SelectItem>
+                        <SelectItem value="complex">복잡</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={feedForm.control}
+              name="satisfaction"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>클라이언트 만족도</FormLabel>
+                  <FormControl>
+                    <div className="flex space-x-2">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <Button
+                          key={rating}
+                          type="button"
+                          variant={field.value === rating ? "default" : "outline"}
+                          size="sm"
+                          className="w-12 h-12"
+                          onClick={() => field.onChange(rating as any)}
+                        >
+                          {rating}
+                        </Button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+
+            <FormField
+              control={feedForm.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>피드백 내용</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="피드백 내용이나 추가 정보를 상세히 입력하세요..."
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+      </form>
+    </Form>
   );
 
   return (
@@ -862,12 +832,12 @@ export function ContactFeedModal({
 
         <div className="flex space-x-2 pt-4 border-t">
           {activeTab === 'contact' ? (
-            <Button onClick={handleSaveContact} className="flex-1">
+            <Button onClick={contactForm.handleSubmit(handleSaveContact)} className="flex-1">
               <Save className="mr-2 h-4 w-4" />
               컨택 정보 저장
             </Button>
           ) : (
-            <Button onClick={handleSaveFeed} className="flex-1">
+            <Button onClick={feedForm.handleSubmit(handleSaveFeed)} className="flex-1">
               <Save className="mr-2 h-4 w-4" />
               피드백 정보 저장
             </Button>

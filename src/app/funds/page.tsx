@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -242,8 +241,7 @@ export default function FundsPage() {
   };
 
   return (
-    <MainLayout title="자금 관리" subtitle="회사 고정비 및 개인 보조금 관리">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -735,7 +733,6 @@ export default function FundsPage() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
-    </MainLayout>
+    </div>
   );
 }

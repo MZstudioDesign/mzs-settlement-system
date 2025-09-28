@@ -63,11 +63,13 @@ export async function GET(request: NextRequest) {
         })
 
       case 'pdf':
-        // TODO: Implement PDF generation
-        return NextResponse.json(
-          { error: 'PDF generation not yet implemented' },
-          { status: 501 }
-        )
+        // PDF 생성은 클라이언트에서 처리 (jsPDF는 브라우저 전용)
+        return NextResponse.json({
+          data: settlement,
+          summary: generateSettlementSummary(settlement),
+          type: 'pdf_data',
+          message: 'PDF data provided for client-side generation'
+        })
 
       case 'excel':
         // TODO: Implement Excel generation
@@ -207,6 +209,7 @@ function getSourceDescription(item: any): string {
       return item.source_type
   }
 }
+
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('ko-KR', {

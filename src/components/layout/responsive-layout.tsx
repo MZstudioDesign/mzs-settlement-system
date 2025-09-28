@@ -235,7 +235,10 @@ function ResponsiveLayoutInner({
         메인 콘텐츠로 건너뛰기
       </a>
 
-      <div className="flex h-screen">
+      <div
+        className="flex h-screen w-full lg:min-w-full lg:max-w-none max-w-[100vw]"
+        style={{ width: isMobile ? '100%' : '100vw' }}
+      >
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
           <DesktopSidebar />
@@ -267,7 +270,7 @@ function ResponsiveLayoutInner({
             id="main-content"
             className={cn(
               "flex-1 overflow-auto",
-              "container mx-auto max-w-screen-xl px-4 py-6 md:px-6",
+              "w-full max-w-none px-4 py-6 md:px-6 lg:px-8",
               showBottomNav && "pb-24 lg:pb-6", // 하단 네비게이션을 위한 여백 (모바일에서만)
               className
             )}
